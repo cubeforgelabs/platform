@@ -31,19 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      if (data.session?.user) loadProfile(data.session.user.id).finally(() => setLoading(false))
-      else setLoading(false)
-    })
+    let initialized = false
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
-      if (s?.user) loadProfile(s.user.id)
-      else setProfile(null)
+      if (s?.user) {
+        await loadProfile(s.user.id)
+      } else {
+        setProfile(null)
+      }
+      if (!initialized) {
+        initialized = true
+        setLoading(false)
+      }
     })
 
-    return () => listener.subscription.unsubscribe()
+    return () => subscription.unsubscribe()
   }, [])
 
   async function signOut() {
@@ -51,9 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signOut, refreshProfile }}
-    >
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

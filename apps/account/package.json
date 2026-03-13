@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@cubeforgelabs/auth": "workspace:*",
+    "cubeforge": "^0.4.9",
+    "lucide-react": "^0.577.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-router-dom": "^7.0.0"

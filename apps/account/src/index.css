@@ -5,13 +5,13 @@
   --bg: #0b0d14;
   --surface: #13151f;
   --surface2: #181c28;
-  --border: rgba(255, 255, 255, 0.07);
-  --border2: rgba(255, 255, 255, 0.13);
-  --text: #e2e4f0;
-  --text-dim: #9499b0;
-  --text-muted: #5a5f75;
+  --border: #1f2435;
+  --border2: #2a3048;
+  --text: #cdd6f4;
+  --text-dim: #6b7a9e;
+  --text-muted: #3d4666;
   --accent: #4fc3f7;
-  --accent2: #81d4fa;
+  --accent2: #00b4d8;
   --red: #f38ba8;
   --green: #a6e3a1;
 }
@@ -20,11 +20,13 @@
   --color-bg: #0b0d14;
   --color-surface: #13151f;
   --color-surface2: #181c28;
-  --color-text: #e2e4f0;
-  --color-text-dim: #9499b0;
-  --color-text-muted: #5a5f75;
+  --color-border: #1f2435;
+  --color-border2: #2a3048;
+  --color-text: #cdd6f4;
+  --color-text-dim: #6b7a9e;
+  --color-text-muted: #3d4666;
   --color-accent: #4fc3f7;
-  --color-accent2: #81d4fa;
+  --color-accent2: #00b4d8;
   --color-red: #f38ba8;
   --color-green: #a6e3a1;
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -48,15 +50,22 @@ body {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(79, 195, 247, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 195, 247, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
 
 .auth-input {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 10px;
-  padding: 11px 14px;
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 14px;
   font-family: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -65,15 +74,15 @@ body {
 }
 .auth-input::placeholder { color: var(--text-muted); }
 .auth-input:focus {
-  border-color: rgba(79, 195, 247, 0.5);
-  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+  border-color: rgba(79, 195, 247, 0.45);
+  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.08);
 }
 
 .inner-input {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 8px 12px;
   font-size: 14px;
   font-family: inherit;
@@ -83,8 +92,8 @@ body {
 }
 .inner-input::placeholder { color: var(--text-muted); }
 .inner-input:focus {
-  border-color: rgba(79, 195, 247, 0.5);
-  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+  border-color: rgba(79, 195, 247, 0.45);
+  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.08);
 }
 textarea.inner-input { resize: none; }
 
@@ -92,4 +101,4 @@ textarea.inner-input { resize: none; }
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-up { animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.fade-up { animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
