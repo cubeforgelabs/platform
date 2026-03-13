@@ -37,13 +37,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // getSession() bootstraps the Supabase client's internal session cache so
     // that subsequent queries (upsert, select, etc.) can attach the auth header.
     // onAuthStateChange fires INITIAL_SESSION right after and loads the profile.
-    supabase.auth.getSession()
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log('[auth] getSession result:', { session: data.session, error })
+      console.log('[auth] user:', data.session?.user ?? null)
+      console.log('[auth] access_token:', data.session?.access_token ? data.session.access_token.slice(0, 40) + '...' : null)
+      console.log('[auth] localStorage keys:', Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-')))
+      console.log('[auth] cookies:', document.cookie)
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+      console.log('[auth] onAuthStateChange event:', _event, '| user:', s?.user?.id ?? null)
       setSession(s)
       if (s?.user) {
+        console.log('[auth] loading profile for', s.user.id)
         await loadProfile(s.user.id)
+        console.log('[auth] profile loaded')
       } else {
+        console.log('[auth] no user — clearing profile')
         setProfile(null)
       }
       if (!ready) { ready = true; setLoading(false) }
