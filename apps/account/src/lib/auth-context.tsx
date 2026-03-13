@@ -56,15 +56,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[auth] cookies:', document.cookie)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
-      console.log('[auth] onAuthStateChange event:', _event, '| user:', s?.user?.id ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
       setSession(s)
+      if (event === 'SIGNED_OUT') {
+        setProfile(null)
+        if (!ready) { ready = true; setLoading(false) }
+        return
+      }
+      // SIGNED_IN fires during _recoverAndRefresh before the token is usable.
+      // Wait for INITIAL_SESSION (or TOKEN_REFRESHED) which fires once the token is ready.
+      if (event === 'SIGNED_IN') return
       if (s?.user) {
-        console.log('[auth] loading profile for', s.user.id)
         await loadProfile(s.user.id)
-        console.log('[auth] profile loaded')
       } else {
-        console.log('[auth] no user — clearing profile')
         setProfile(null)
       }
       if (!ready) { ready = true; setLoading(false) }
