@@ -15,18 +15,13 @@ export function MyGamesPage() {
     supabase
       .from('games')
       .select('*')
-      .eq('creator_id', user.id)
+      .eq('author_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         setGames(data ?? [])
         setLoading(false)
       })
   }, [user])
-
-  async function togglePublished(game: Game) {
-    await supabase.from('games').update({ published: !game.published }).eq('id', game.id)
-    setGames(prev => prev.map(g => g.id === game.id ? { ...g, published: !g.published } : g))
-  }
 
   async function deleteGame(id: string) {
     if (!confirm('Delete this game?')) return
@@ -70,21 +65,18 @@ export function MyGamesPage() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-text truncate">{game.title}</p>
-                <p className="text-xs text-text-muted">{game.play_count} plays</p>
+                <p className="text-xs text-text-muted">{game.plays} plays</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => togglePublished(game)}
-                  className={`text-xs px-3 py-1 rounded-lg border transition-colors ${
-                    game.published
-                      ? 'border-green/30 text-green bg-green/10 hover:bg-green/20'
-                      : 'border-border text-text-muted hover:text-text'
-                  }`}
-                >
-                  {game.published ? 'Published' : 'Draft'}
-                </button>
+                <span className={`text-xs px-3 py-1 rounded-lg border ${
+                  game.is_official
+                    ? 'border-accent/30 text-accent bg-accent/10'
+                    : 'border-border text-text-muted'
+                }`}>
+                  {game.is_official ? 'Official' : 'Community'}
+                </span>
                 <a
-                  href={`https://play.cubeforge.dev/games/${game.id}`}
+                  href={`https://play.cubeforge.dev/game/${game.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-text-muted hover:text-text transition-colors"
