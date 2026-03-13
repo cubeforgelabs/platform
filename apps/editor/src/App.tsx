@@ -95,6 +95,10 @@ export function App() {
       if (result.doc.meta.game_id) {
         setPublishedUrl(`https://play.cubeforge.dev/game/${result.doc.meta.game_id}`)
       }
+      // Auto-switch to code mode for code-only templates (have files but no visual entities)
+      if (result.doc.files.length > 0 && result.doc.entities.length === 0) {
+        setViewMode('code')
+      }
     })
   }, [urlProjectId])
 
