@@ -1,48 +1,45 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../lib/auth-context'
 
 export function Layout() {
-  const { pathname } = useLocation();
+  const { pathname } = useLocation()
+  const { user } = useAuth()
 
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-lg">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-6">
-            <Link
-              to="/"
-              className="flex items-center gap-2 font-mono font-semibold text-sm text-text tracking-wide"
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/10 border border-accent/20">
-                <span className="text-accent font-mono font-bold text-xs">
-                  C
-                </span>
-              </div>
+            <Link to="/" className="flex items-center gap-2 font-mono font-semibold text-sm text-text tracking-wide">
+              <img src="/favicon-96x96.png" alt="CubeForge" className="h-7 w-7 rounded-md" />
               play
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
-              <NavLink to="/" active={pathname === "/"}>
-                Home
-              </NavLink>
-              <NavLink
-                to="/browse"
-                active={pathname === "/browse"}
-              >
-                Browse
-              </NavLink>
+              <NavLink to="/" active={pathname === '/'}>Home</NavLink>
+              <NavLink to="/browse" active={pathname === '/browse'}>Browse</NavLink>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="https://editor.cubeforge.dev"
-              className="text-xs text-text-dim hover:text-text transition-colors hidden sm:block"
-            >
+            <a href="https://editor.cubeforge.dev" className="text-xs text-text-dim hover:text-text transition-colors hidden sm:block">
               Make a Game
             </a>
-            <button className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-bg hover:bg-accent2 transition-colors">
-              Sign In
-            </button>
+            {user ? (
+              <a
+                href="https://account.cubeforge.dev"
+                className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all"
+              >
+                Account
+              </a>
+            ) : (
+              <a
+                href="https://account.cubeforge.dev/signin"
+                className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-bg hover:bg-accent2 transition-colors"
+              >
+                Sign In
+              </a>
+            )}
           </div>
         </div>
       </nav>
@@ -57,50 +54,25 @@ export function Layout() {
             &copy; {new Date().getFullYear()} CubeForge. Open source under MIT.
           </p>
           <div className="flex items-center gap-6 text-xs text-text-muted">
-            <a
-              href="https://cubeforge.dev"
-              className="hover:text-text-dim transition-colors"
-            >
-              cubeforge.dev
-            </a>
-            <a
-              href="https://docs.cubeforge.dev"
-              className="hover:text-text-dim transition-colors"
-            >
-              Docs
-            </a>
-            <a
-              href="https://github.com/1homsi/cubeforge"
-              className="hover:text-text-dim transition-colors"
-            >
-              GitHub
-            </a>
+            <a href="https://cubeforge.dev" className="hover:text-text-dim transition-colors">cubeforge.dev</a>
+            <a href="https://docs.cubeforge.dev" className="hover:text-text-dim transition-colors">Docs</a>
+            <a href="https://github.com/1homsi/cubeforge" className="hover:text-text-dim transition-colors">GitHub</a>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }
 
-function NavLink({
-  to,
-  active,
-  children,
-}: {
-  to: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
+function NavLink({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link
       to={to}
       className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-        active
-          ? "bg-surface2 text-text"
-          : "text-text-dim hover:text-text hover:bg-surface"
+        active ? 'bg-surface2 text-text' : 'text-text-dim hover:text-text hover:bg-surface'
       }`}
     >
       {children}
     </Link>
-  );
+  )
 }

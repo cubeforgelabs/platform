@@ -30,10 +30,7 @@ export function GamePage() {
   useEffect(() => {
     if (!id) return
 
-    // Increment play count via direct update (no RPC needed)
-    supabase.from('games').select('play_count').eq('id', id).single().then(({ data }) => {
-      if (data) supabase.from('games').update({ play_count: data.play_count + 1 }).eq('id', id).then(() => {})
-    })
+    supabase.rpc('increment_play_count', { game_id: id })
 
     Promise.all([
       supabase
