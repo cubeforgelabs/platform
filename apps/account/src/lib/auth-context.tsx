@@ -31,14 +31,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Eagerly resolve loading from current session — prevents stuck Loading…
-    // when onAuthStateChange doesn't fire (e.g. no session change on navigation)
+    let resolved = false
+    function resolve() {
+      if (!resolved) { resolved = true; setLoading(false) }
+    }
+
+    // Hard timeout — never stay stuck more than 3s
+    const timeout = setTimeout(resolve, 3000)
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
       if (s?.user) {
-        loadProfile(s.user.id).finally(() => setLoading(false))
+        loadProfile(s.user.id).finally(resolve)
       } else {
-        setLoading(false)
+        resolve()
       }
     })
 
@@ -49,10 +55,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null)
       }
-      setLoading(false)
+      resolve()
     })
 
-    return () => subscription.unsubscribe()
+    return () => { clearTimeout(timeout); subscription.unsubscribe() }
   }, [])
 
   async function signOut() {
