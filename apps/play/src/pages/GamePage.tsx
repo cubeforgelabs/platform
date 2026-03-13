@@ -34,12 +34,12 @@ export function GamePage() {
     Promise.all([
       supabase
         .from('games')
-        .select('*, profiles(username, display_name, avatar_url)')
+        .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
         .eq('id', id)
         .single(),
       supabase
         .from('reviews')
-        .select('*, profiles(username, display_name, avatar_url)')
+        .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
         .eq('game_id', id)
         .order('created_at', { ascending: false }),
     ]).then(([gameRes, reviewsRes]) => {

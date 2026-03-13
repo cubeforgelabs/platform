@@ -19,7 +19,7 @@ export function gameColor(game: GameListItem): string {
 export async function fetchGames(): Promise<GameListItem[]> {
   const { data, error } = await supabase
     .from('games')
-    .select('*, profiles(username, display_name, avatar_url)')
+    .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
     .not('bundle_path', 'is', null)
     .order('plays', { ascending: false })
   if (error) throw error
@@ -29,7 +29,7 @@ export async function fetchGames(): Promise<GameListItem[]> {
 export async function fetchGameById(id: string): Promise<GameListItem | null> {
   const { data, error } = await supabase
     .from('games')
-    .select('*, profiles(username, display_name, avatar_url)')
+    .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
     .eq('id', id)
     .single()
   if (error) return null
