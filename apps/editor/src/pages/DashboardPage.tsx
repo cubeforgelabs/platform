@@ -23,20 +23,25 @@ export function DashboardPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('__blank__')
 
   useEffect(() => {
-    listProjects().then(p => { setProjects(p); setLoading(false) })
+    listProjects()
+      .then(p => { setProjects(p); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   async function handleCreate() {
     if (!newName.trim()) return
     setCreating(true)
-    let doc: CsxDocument = createEmptyDocument(newName.trim())
-    if (selectedTemplate !== '__blank__') {
-      const tpl = TEMPLATES.find(t => t.id === selectedTemplate)
-      if (tpl) doc = { ...doc, files: tpl.files }
+    try {
+      let doc: CsxDocument = createEmptyDocument(newName.trim())
+      if (selectedTemplate !== '__blank__') {
+        const tpl = TEMPLATES.find(t => t.id === selectedTemplate)
+        if (tpl) doc = { ...doc, files: tpl.files }
+      }
+      const id = await createProject(newName.trim(), doc)
+      if (id) navigate(`/project/${id}`)
+    } finally {
+      setCreating(false)
     }
-    const id = await createProject(newName.trim(), doc)
-    setCreating(false)
-    if (id) navigate(`/project/${id}`)
   }
 
   async function handleDelete(id: string, e: React.MouseEvent) {

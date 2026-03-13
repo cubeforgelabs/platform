@@ -1,43 +1,15 @@
-const examples = [
-  {
-    title: "Platformer",
-    description: "Full platformer with enemies, coins, and coyote-time jumps",
-    tags: ["physics", "animation", "input"],
-    color: "#4fc3f7",
-  },
-  {
-    title: "Mario Clone",
-    description: "Multi-level recreation with power-ups and enemy AI",
-    tags: ["physics", "state", "sprites"],
-    color: "#f38ba8",
-  },
-  {
-    title: "Top-Down RPG",
-    description: "WASD movement with collision, enemies, and key pickups",
-    tags: ["top-down", "triggers", "camera"],
-    color: "#a6e3a1",
-  },
-  {
-    title: "Endless Runner",
-    description: "Auto-scrolling obstacle course with score tracking",
-    tags: ["physics", "spawning", "lockX"],
-    color: "#f9e2af",
-  },
-  {
-    title: "Breakout",
-    description: "Classic brick-breaker with paddle, ball, and power-ups",
-    tags: ["script", "collision", "particles"],
-    color: "#cba6f7",
-  },
-  {
-    title: "Flappy Bird",
-    description: "Tap-to-fly through pipes with score and restart",
-    tags: ["script", "spawning", "input"],
-    color: "#fab387",
-  },
-];
+export interface GameEntry {
+  id: string
+  title: string
+  description: string | null
+  tags: string[]
+  thumbnail_url: string | null
+  slug: string | null
+}
 
-export function Examples() {
+const ACCENT_COLORS = ['#4fc3f7', '#f38ba8', '#a6e3a1', '#f9e2af', '#cba6f7', '#fab387']
+
+export function Examples({ games }: { games: GameEntry[] }) {
   return (
     <section className="relative py-20 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
@@ -52,44 +24,62 @@ export function Examples() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {examples.map((example, i) => (
-            <a
-              key={example.title}
-              href={`https://play.cubeforge.dev/${example.title.toLowerCase().replace(/\s+/g, "-")}`}
-              className="animate-fade-up group rounded-xl border border-border bg-surface/80 backdrop-blur-sm p-6 hover:border-border2 hover:-translate-y-0.5 transition-all duration-200"
-              style={{ animationDelay: `${(i + 1) * 80}ms` }}
-            >
-              {/* Preview placeholder */}
-              <div
-                className="w-full h-32 rounded-lg mb-4 flex items-center justify-center border border-border/50"
-                style={{ background: `${example.color}08` }}
+          {games.map((game, i) => {
+            const color = ACCENT_COLORS[i % ACCENT_COLORS.length]
+            const href = game.slug
+              ? `https://play.cubeforge.dev/games/${game.slug}`
+              : `https://play.cubeforge.dev`
+            return (
+              <a
+                key={game.id}
+                href={href}
+                className="animate-fade-up group rounded-xl border border-border bg-surface/80 backdrop-blur-sm p-6 hover:border-border2 hover:-translate-y-0.5 transition-all duration-200"
+                style={{ animationDelay: `${(i + 1) * 80}ms` }}
               >
-                <span
-                  className="text-2xl font-bold font-mono opacity-20"
-                  style={{ color: example.color }}
+                {/* Preview */}
+                <div
+                  className="w-full h-32 rounded-lg mb-4 overflow-hidden border border-border/50"
+                  style={{ background: `${color}08` }}
                 >
-                  {example.title[0]}
-                </span>
-              </div>
+                  {game.thumbnail_url ? (
+                    <img
+                      src={game.thumbnail_url}
+                      alt={game.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span
+                        className="text-2xl font-bold font-mono opacity-20"
+                        style={{ color }}
+                      >
+                        {game.title[0]}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-              <h3 className="font-semibold text-text text-sm mb-1.5 group-hover:text-accent transition-colors">
-                {example.title}
-              </h3>
-              <p className="text-xs text-text-dim leading-relaxed mb-3">
-                {example.description}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {example.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-1.5 py-0.5"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </a>
-          ))}
+                <h3 className="font-semibold text-text text-sm mb-1.5 group-hover:text-accent transition-colors">
+                  {game.title}
+                </h3>
+                {game.description && (
+                  <p className="text-xs text-text-dim leading-relaxed mb-3">
+                    {game.description}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {game.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-1.5 py-0.5"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </a>
+            )
+          })}
         </div>
 
         <div className="text-center mt-10">
@@ -114,5 +104,5 @@ export function Examples() {
         </div>
       </div>
     </section>
-  );
+  )
 }

@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
+import { UserMenu } from '@cubeforgelabs/ui'
 
 const NAV = [
   { to: '/', label: 'Profile', end: true },
@@ -33,27 +34,13 @@ export function Layout() {
               CubeForge
             </span>
           </a>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-text-muted hidden sm:block">
-              {profile?.display_name ?? profile?.username ?? ''}
-            </span>
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
-            ) : (
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-bg"
-                style={{ background: '#4fc3f7' }}
-              >
-                {(profile?.display_name ?? profile?.username ?? '?')[0]?.toUpperCase()}
-              </div>
-            )}
-            <button
-              onClick={handleSignOut}
-              className="text-xs text-text-muted hover:text-text transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
+          <UserMenu
+            avatarUrl={profile?.avatar_url}
+            displayName={profile?.display_name}
+            username={profile?.username}
+            onSignOut={handleSignOut}
+            variant="navbar"
+          />
         </div>
       </header>
 

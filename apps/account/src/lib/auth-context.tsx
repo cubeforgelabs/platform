@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    setProfile(data)
+    setProfile(data ?? null)
   }
 
   async function refreshProfile() {
@@ -31,22 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    let resolved = false
-    function resolve() {
-      if (!resolved) { resolved = true; setLoading(false) }
-    }
-
-    // Hard timeout — never stay stuck more than 3s
-    const timeout = setTimeout(resolve, 3000)
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s)
-      if (s?.user) {
-        loadProfile(s.user.id).finally(resolve)
-      } else {
-        resolve()
-      }
-    })
+    // Single source of truth: onAuthStateChange fires INITIAL_SESSION immediately
+    // with the current session. We wait for profile load before clearing loading.
+    let ready = false
+    const timeout = setTimeout(() => { if (!ready) { ready = true; setLoading(false) } }, 5000)
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
@@ -55,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null)
       }
-      resolve()
+      if (!ready) { ready = true; setLoading(false) }
     })
 
     return () => { clearTimeout(timeout); subscription.unsubscribe() }

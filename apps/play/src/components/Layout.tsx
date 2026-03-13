@@ -1,9 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
+import { UserMenu } from '@cubeforgelabs/ui'
 
 export function Layout() {
   const { pathname } = useLocation()
-  const { user } = useAuth()
+  const { user, profile, signOut } = useAuth()
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -26,12 +27,14 @@ export function Layout() {
               Make a Game
             </a>
             {user ? (
-              <a
-                href="https://account.cubeforge.dev"
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all"
-              >
-                Account
-              </a>
+              <UserMenu
+                avatarUrl={profile?.avatar_url}
+                displayName={profile?.display_name}
+                username={profile?.username}
+                email={user.email}
+                onSignOut={signOut}
+                variant="navbar"
+              />
             ) : (
               <a
                 href="https://account.cubeforge.dev/signin?redirect_to=https://play.cubeforge.dev"

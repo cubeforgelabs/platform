@@ -2,10 +2,27 @@ import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { CodeDemo } from "./components/CodeDemo";
 import { Features } from "./components/Features";
-import { Examples } from "./components/Examples";
+import { Examples, type GameEntry } from "./components/Examples";
 import { GetStarted } from "./components/GetStarted";
 import { Footer } from "./components/Footer";
 import { PhysicsBgLoader } from "./components/PhysicsBgLoader";
+
+async function getFeaturedGames(): Promise<GameEntry[]> {
+  try {
+    const url = `${process.env.VITE_SUPABASE_URL}/rest/v1/games?select=id,title,description,tags,thumbnail_url,slug&is_official=eq.true&order=plays.desc&limit=6`
+    const res = await fetch(url, {
+      headers: {
+        apikey: process.env.VITE_SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${process.env.VITE_SUPABASE_ANON_KEY!}`,
+      },
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
+}
 
 async function getLatestRelease(): Promise<{
   version: string;
@@ -27,7 +44,7 @@ async function getLatestRelease(): Promise<{
 }
 
 export default async function Home() {
-  const release = await getLatestRelease();
+  const [release, games] = await Promise.all([getLatestRelease(), getFeaturedGames()])
 
   return (
     <main className="bg-grid min-h-screen overflow-x-hidden relative">
@@ -37,7 +54,7 @@ export default async function Home() {
         <Hero version={release.version} title={release.title} />
         <CodeDemo />
       <Features />
-      <Examples />
+      <Examples games={games} />
       <GetStarted />
         <Footer />
       </div>

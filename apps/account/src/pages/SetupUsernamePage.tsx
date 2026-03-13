@@ -21,8 +21,7 @@ export function SetupUsernamePage() {
     setError('')
     const { error: err } = await supabase
       .from('profiles')
-      .update({ username: clean, username_confirmed: true })
-      .eq('id', user.id)
+      .upsert({ id: user.id, username: clean, username_confirmed: true })
     setSaving(false)
 
     if (err) {

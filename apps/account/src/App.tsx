@@ -14,6 +14,9 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   if (loading) return <div className="flex items-center justify-center min-h-screen text-text-dim text-sm">Loading…</div>
   if (!user) return <Navigate to="/signin" replace />
+  if (!profile && location.pathname !== '/setup-username') {
+    return <Navigate to="/setup-username" replace />
+  }
   if (profile && !profile.username_confirmed && location.pathname !== '/setup-username') {
     return <Navigate to="/setup-username" replace />
   }

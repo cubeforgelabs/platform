@@ -7,6 +7,7 @@ import { saveProject, loadProject } from './lib/projects'
 import { createEmptyDocument, type CsxDocument } from './lib/csx'
 import { touch } from './lib/csxUtils'
 import { useAuth } from './lib/auth-context'
+import { UserMenu } from '@cubeforgelabs/ui'
 import { HierarchyPanel } from './components/HierarchyPanel'
 import { InspectorPanel } from './components/InspectorPanel'
 import { CanvasOverlay } from './components/CanvasOverlay'
@@ -36,7 +37,7 @@ type SaveState = 'idle' | 'saving' | 'saved'
 export function App() {
   const { projectId: urlProjectId } = useParams<{ projectId?: string }>()
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user, profile, signOut } = useAuth()
 
   // Core state
   const [doc, setDoc] = useState<CsxDocument>(() => createEmptyDocument('Untitled'))
@@ -61,6 +62,12 @@ export function App() {
   const [leftTab, setLeftTab] = useState<'scene' | 'assets'>('scene')
   const [showPublish, setShowPublish] = useState(false)
   const [publishedUrl, setPublishedUrl] = useState<string | null>(doc.meta.game_id ? `https://play.cubeforge.dev/game/${doc.meta.game_id}` : null)
+
+  // Canvas viewport
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 40, y: 40 })
+  const [snapToGrid, setSnapToGrid] = useState(false)
+  const [gridSize] = useState(32)
 
   // Monaco code (when in code mode)
   const [codeFiles, setCodeFiles] = useState<{ name: string; content: string }[]>([])
@@ -298,15 +305,14 @@ export function App() {
 
         {/* User */}
         {user ? (
-          <a href="https://account.cubeforge.dev" target="_blank" rel="noopener noreferrer" className="toolbar-user">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="toolbar-avatar" />
-            ) : (
-              <div className="toolbar-avatar-initial">
-                {(profile?.display_name ?? profile?.username ?? user.email ?? '?')[0].toUpperCase()}
-              </div>
-            )}
-          </a>
+          <UserMenu
+            avatarUrl={profile?.avatar_url}
+            displayName={profile?.display_name}
+            username={profile?.username}
+            email={user.email}
+            onSignOut={signOut}
+            variant="toolbar"
+          />
         ) : (
           <a href={`https://account.cubeforge.dev/signin?redirect_to=${encodeURIComponent(window.location.href)}`}
             className="toolbar-signin">
@@ -357,8 +363,14 @@ export function App() {
                     <CanvasOverlay
                       doc={doc}
                       selectedId={selectedId}
+                      snapToGrid={snapToGrid}
+                      gridSize={gridSize}
+                      zoom={zoom}
+                      pan={pan}
                       onSelect={setSelectedId}
                       onChange={handleDocChange}
+                      onZoomChange={setZoom}
+                      onPanChange={setPan}
                       containerRef={centerPanelRef}
                     />
                     {!isPlaying && (
@@ -503,3 +515,4 @@ function SaveIndicator({ state, lastSaved }: { state: SaveState; lastSaved: Date
 function formatTime(d: Date): string {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
+
