@@ -29,7 +29,7 @@ export function Layout() {
       >
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <a href="https://cubeforge.dev" className="flex items-center gap-2 group">
-            <MiniCube />
+            <img src="/favicon-96x96.png" alt="CubeForge" width={22} height={22} style={{ borderRadius: 4 }} />
             <span className="text-sm font-semibold text-text tracking-tight group-hover:text-accent transition-colors">
               CubeForge
             </span>
@@ -75,13 +75,3 @@ export function Layout() {
   )
 }
 
-function MiniCube() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <polygon points="11,2 19,6.5 19,15.5 11,20 3,15.5 3,6.5" fill="none" stroke="rgba(79,195,247,0.3)" strokeWidth="0.8" />
-      <polygon points="11,2 19,6.5 11,11 3,6.5" fill="rgba(79,195,247,0.18)" stroke="rgba(79,195,247,0.55)" strokeWidth="1" />
-      <polygon points="3,6.5 11,11 11,20 3,15.5" fill="rgba(79,195,247,0.07)" stroke="rgba(79,195,247,0.3)" strokeWidth="1" />
-      <polygon points="19,6.5 11,11 11,20 19,15.5" fill="rgba(79,195,247,0.1)" stroke="rgba(79,195,247,0.35)" strokeWidth="1" />
-    </svg>
-  )
-}

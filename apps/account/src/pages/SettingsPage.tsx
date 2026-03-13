@@ -220,7 +220,7 @@ function ToggleRow({ label, description, checked, onChange }: {
       <button
         type="button"
         onClick={() => onChange(!checked)}
-        className={`relative shrink-0 w-10 h-5 rounded-full transition-colors mt-0.5 ${checked ? 'bg-accent' : 'bg-surface2'}`}
+        className={`relative shrink-0 w-10 h-5 rounded-full transition-colors mt-0.5 overflow-hidden ${checked ? 'bg-accent' : 'bg-surface2'}`}
         style={{ border: '1px solid #1f2435' }}
       >
         <span
