@@ -19,17 +19,21 @@ export function SetupUsernamePage() {
 
     setSaving(true)
     setError('')
-    const { error: err } = await supabase
-      .from('profiles')
-      .upsert({ id: user.id, username: clean, username_confirmed: true })
-    setSaving(false)
-
-    if (err) {
-      setError(err.message.includes('unique') ? 'That username is already taken.' : err.message)
-      return
+    try {
+      const { error: err } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, username: clean, username_confirmed: true })
+      if (err) {
+        setError(err.message.includes('unique') ? 'That username is already taken.' : err.message)
+        return
+      }
+      await refreshProfile()
+      navigate('/')
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
     }
-    await refreshProfile()
-    navigate('/')
   }
 
   return (

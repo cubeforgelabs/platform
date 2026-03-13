@@ -49,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let ready = false
     const timeout = setTimeout(() => { if (!ready) { ready = true; setLoading(false) } }, 5000)
 
+    supabase.auth.getSession()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
       setUser(s?.user ?? null)

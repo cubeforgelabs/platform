@@ -31,10 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Single source of truth: onAuthStateChange fires INITIAL_SESSION immediately
-    // with the current session. We wait for profile load before clearing loading.
     let ready = false
     const timeout = setTimeout(() => { if (!ready) { ready = true; setLoading(false) } }, 5000)
+
+    // getSession() bootstraps the Supabase client's internal session cache so
+    // that subsequent queries (upsert, select, etc.) can attach the auth header.
+    // onAuthStateChange fires INITIAL_SESSION right after and loads the profile.
+    supabase.auth.getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
