@@ -73,6 +73,8 @@ export function App() {
   const [codeFiles, setCodeFiles] = useState<{ name: string; content: string }[]>([])
   const [activeCodeFile, setActiveCodeFile] = useState('main.tsx')
   const [monacoVersion, setMonacoVersion] = useState(0)
+  const [newFileName, setNewFileName] = useState('')
+  const [creatingFile, setCreatingFile] = useState(false)
 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -383,17 +385,62 @@ export function App() {
           ) : (
             /* Code view */
             <div className="code-view">
-              <div className="editor-tab-bar">
-                {codeFiles.map(f => (
-                  <div
-                    key={f.name}
-                    className={`editor-tab${f.name === activeCodeFile ? ' active' : ''}`}
-                    onClick={() => setActiveCodeFile(f.name)}
+              {/* File explorer sidebar */}
+              <div className="code-file-sidebar">
+                <div className="code-file-sidebar-header">
+                  <span>FILES</span>
+                  <button
+                    className="code-file-new-btn"
+                    title="New file"
+                    onClick={() => setCreatingFile(true)}
                   >
-                    {f.name === activeCodeFile && <span className="editor-tab-dot" />}
-                    {f.name}
-                  </div>
-                ))}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="13" x2="12" y2="19"/><line x1="9" y1="16" x2="15" y2="16"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="code-file-list">
+                  {codeFiles.map(f => (
+                    <div
+                      key={f.name}
+                      className={`code-file-item${f.name === activeCodeFile ? ' active' : ''}`}
+                      onClick={() => setActiveCodeFile(f.name)}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="code-file-icon">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                      <span>{f.name}</span>
+                    </div>
+                  ))}
+                  {creatingFile && (
+                    <div className="code-file-item creating">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="code-file-icon">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                      <input
+                        autoFocus
+                        className="code-file-name-input"
+                        placeholder="filename.tsx"
+                        value={newFileName}
+                        onChange={e => setNewFileName(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            const name = newFileName.trim()
+                            if (name && !codeFiles.find(f => f.name === name)) {
+                              setCodeFiles(prev => [...prev, { name, content: '' }])
+                              setActiveCodeFile(name)
+                              setMonacoVersion(v => v + 1)
+                            }
+                            setCreatingFile(false)
+                            setNewFileName('')
+                          }
+                          if (e.key === 'Escape') { setCreatingFile(false); setNewFileName('') }
+                        }}
+                        onBlur={() => { setCreatingFile(false); setNewFileName('') }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="editor-body-inner">
                 <Editor
