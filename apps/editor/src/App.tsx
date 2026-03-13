@@ -315,8 +315,8 @@ export function App() {
       </div>
 
       {/* Body */}
-      <div className="editor-body">
-        {/* Left panel */}
+      <div className={`editor-body${viewMode === 'code' ? ' code-mode' : ''}`}>
+        {/* Left panel — hidden in code mode */}
         <div className="left-panel">
           <div className="left-tabs">
             <button className={`left-tab${leftTab === 'scene' ? ' active' : ''}`} onClick={() => setLeftTab('scene')}>Scene</button>
@@ -422,32 +422,37 @@ export function App() {
                   }}
                 />
               </div>
-              {srcdoc && (
-                <div className="code-preview-panel">
-                  <div className="preview-tab-bar"><span>PREVIEW</span></div>
-                  <div className="preview-body">
-                    <iframe
-                      key={iframeKey}
-                      ref={iframeRef}
-                      srcDoc={srcdoc}
-                      sandbox="allow-scripts allow-pointer-lock"
-                      title="game preview"
-                    />
-                    {errorMessage && (
-                      <div className="error-overlay">
-                        <div className="error-box">{errorMessage}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
 
-        {/* Right panel */}
+        {/* Right panel — inspector in visual mode, preview in code mode */}
         <div className="right-panel">
-          <InspectorPanel doc={doc} selectedId={selectedId} onChange={handleDocChange} />
+          {viewMode === 'code' ? (
+            <div className="code-preview-panel">
+              <div className="preview-tab-bar"><span>PREVIEW</span></div>
+              <div className="preview-body">
+                {srcdoc ? (
+                  <iframe
+                    key={iframeKey}
+                    ref={iframeRef}
+                    srcDoc={srcdoc}
+                    sandbox="allow-scripts allow-pointer-lock"
+                    title="game preview"
+                  />
+                ) : (
+                  <div className="preview-empty">Run to see preview</div>
+                )}
+                {errorMessage && (
+                  <div className="error-overlay">
+                    <div className="error-box">{errorMessage}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <InspectorPanel doc={doc} selectedId={selectedId} onChange={handleDocChange} />
+          )}
         </div>
       </div>
 
