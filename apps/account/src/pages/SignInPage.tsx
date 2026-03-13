@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { signInWithEmail, signInWithOAuth } from '@cubeforgelabs/auth'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { signInWithEmail, signInWithOAuth, getSupabaseClient } from '@cubeforgelabs/auth'
+import { ArrowLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 import { PhysicsBg } from '../components/PhysicsBg'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -9,8 +9,11 @@ import { Label } from '../components/ui/label'
 import { Card, CardContent, CardHeader } from '../components/ui/card'
 import { Separator } from '../components/ui/separator'
 
+type View = 'signin' | 'forgot' | 'forgot-sent'
+
 export function SignInPage() {
   const navigate = useNavigate()
+  const [view, setView] = useState<View>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -27,6 +30,24 @@ export function SignInPage() {
     navigate('/')
   }
 
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const { error } = await getSupabaseClient().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
+    })
+    setLoading(false)
+    if (error) { setError(error.message); return }
+    setView('forgot-sent')
+  }
+
+  const subtitle = view === 'signin'
+    ? 'Sign in to your account'
+    : view === 'forgot'
+    ? 'Enter your email to reset your password'
+    : 'Check your email'
+
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10 relative">
       <PhysicsBg />
@@ -37,85 +58,149 @@ export function SignInPage() {
             <img src="/favicon-96x96.png" alt="CubeForge" width={36} height={36} className="rounded-lg" />
             <span className="text-sm font-semibold text-text-dim group-hover:text-text transition-colors">CubeForge</span>
           </a>
-          <h1 className="text-2xl font-semibold text-text tracking-tight">Welcome back</h1>
-          <p className="text-sm text-text-dim mt-1.5">Sign in to your account</p>
+          <h1 className="text-2xl font-semibold text-text tracking-tight">
+            {view === 'signin' ? 'Welcome back' : view === 'forgot' ? 'Reset password' : 'Email sent'}
+          </h1>
+          <p className="text-sm text-text-dim mt-1.5">{subtitle}</p>
         </div>
 
         <Card>
-          <CardHeader className="px-6 pt-6 pb-5">
-            <div className="flex flex-col gap-3">
-              <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('github')}>
-                <GithubLogo /> Continue with GitHub
-              </Button>
-              <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('google')}>
-                <GoogleLogo /> Continue with Google
-              </Button>
-            </div>
-          </CardHeader>
-
-          <div className="flex items-center gap-4 px-6 pb-5">
-            <Separator />
-            <span className="text-xs text-text-muted shrink-0">or</span>
-            <Separator />
-          </div>
-
-          <CardContent className="px-6 pt-0 pb-6">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                />
+          {/* ── Forgot sent confirmation ── */}
+          {view === 'forgot-sent' && (
+            <CardContent className="px-6 py-8 flex flex-col items-center gap-4 text-center">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)' }}
+              >
+                <Mail size={20} color="#4fc3f7" />
               </div>
-
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <button type="button" className="text-xs text-text-muted hover:text-text-dim transition-colors">
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    className="pr-11"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-dim transition-colors"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
-
-              <Button type="submit" className="w-full mt-1" disabled={loading}>
-                {loading && <Loader2 size={15} className="animate-spin" />}
-                {loading ? 'Signing in…' : 'Sign in'}
-              </Button>
-
-              <p className="text-center text-sm text-text-muted pt-1">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-text underline hover:text-accent transition-colors">
-                  Sign up
-                </Link>
+              <p className="text-sm text-text-dim leading-relaxed">
+                We sent a reset link to <span className="text-text font-medium">{email}</span>.
+                Check your inbox and follow the link to set a new password.
               </p>
-            </form>
-          </CardContent>
+              <button
+                onClick={() => { setView('signin'); setError('') }}
+                className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors mt-1"
+              >
+                <ArrowLeft size={14} /> Back to sign in
+              </button>
+            </CardContent>
+          )}
+
+          {/* ── Forgot password form ── */}
+          {view === 'forgot' && (
+            <CardContent className="px-6 py-6 flex flex-col gap-4">
+              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+                {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 size={15} className="animate-spin" />}
+                  {loading ? 'Sending…' : 'Send reset link'}
+                </Button>
+              </form>
+              <button
+                onClick={() => { setView('signin'); setError('') }}
+                className="inline-flex items-center justify-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
+              >
+                <ArrowLeft size={14} /> Back to sign in
+              </button>
+            </CardContent>
+          )}
+
+          {/* ── Sign in form ── */}
+          {view === 'signin' && (
+            <>
+              <CardHeader className="px-6 pt-6 pb-5">
+                <div className="flex flex-col gap-3">
+                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('github')}>
+                    <GithubLogo /> Continue with GitHub
+                  </Button>
+                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('google')}>
+                    <GoogleLogo /> Continue with Google
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <div className="flex items-center gap-4 px-6 pb-5">
+                <Separator />
+                <span className="text-xs text-text-muted shrink-0">or</span>
+                <Separator />
+              </div>
+
+              <CardContent className="px-6 pt-0 pb-6">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => { setView('forgot'); setError('') }}
+                        className="text-xs text-text-muted hover:text-text-dim transition-colors"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                        className="pr-11"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-dim transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
+
+                  <Button type="submit" className="w-full mt-1" disabled={loading}>
+                    {loading && <Loader2 size={15} className="animate-spin" />}
+                    {loading ? 'Signing in…' : 'Sign in'}
+                  </Button>
+
+                  <p className="text-center text-sm text-text-muted pt-1">
+                    Don't have an account?{' '}
+                    <Link to="/signup" className="text-text underline hover:text-accent transition-colors">
+                      Sign up
+                    </Link>
+                  </p>
+                </form>
+              </CardContent>
+            </>
+          )}
         </Card>
       </div>
     </div>
