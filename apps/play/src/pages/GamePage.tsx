@@ -21,6 +21,7 @@ export function GamePage() {
   const [myReview, setMyReview] = useState<{ rating: number; body: string } | null>(null)
   const [isFavorited, setIsFavorited] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [srcdoc, setSrcdoc] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [reviewBody, setReviewBody] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
@@ -39,7 +40,7 @@ export function GamePage() {
         .single(),
       supabase
         .from('reviews')
-        .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
+        .select('*, profiles(username, display_name, avatar_url)')
         .eq('game_id', id)
         .order('created_at', { ascending: false }),
     ]).then(([gameRes, reviewsRes]) => {
@@ -101,7 +102,19 @@ export function GamePage() {
   )
 
   const author = game.profiles
-  const iframeUrl = game.bundle_path ? gameBundleUrl(game.bundle_path) : null
+
+  async function startPlaying() {
+    if (!game!.bundle_path) return
+    const { data } = await supabase.storage.from('games').download(game!.bundle_path)
+    if (data) {
+      const slug = game!.bundle_path.split('/')[0]
+      const baseUrl = gameBundleUrl(`${slug}/`)
+      let html = await data.text()
+      html = html.replace('<head>', `<head><base href="${baseUrl}">`)
+      setSrcdoc(html)
+    }
+    setPlaying(true)
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 md:py-10">
@@ -119,11 +132,13 @@ export function GamePage() {
         <div>
           {/* Game embed */}
           <div className="w-full aspect-[16/10] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
-            {playing && iframeUrl ? (
+            {playing && srcdoc ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               <iframe
-                src={iframeUrl}
+                {...{ srcdoc } as any}
                 className="w-full h-full border-0"
-                allow="fullscreen"
+                allow="fullscreen; autoplay"
+                sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
                 title={game.title}
               />
             ) : (
@@ -132,8 +147,8 @@ export function GamePage() {
                   <img src={game.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
                 )}
                 <button
-                  onClick={() => setPlaying(true)}
-                  disabled={!iframeUrl}
+                  onClick={startPlaying}
+                  disabled={!game.bundle_path}
                   className="relative flex items-center gap-2.5 rounded-xl bg-accent px-8 py-3 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">

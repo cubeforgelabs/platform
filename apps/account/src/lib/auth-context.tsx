@@ -48,8 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await loadProfile(s.user.id)
       } else {
         setProfile(null)
-        setLoading(false)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
