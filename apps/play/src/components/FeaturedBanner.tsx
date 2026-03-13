@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
-import { type GameListItem, gameColor, getGameTags } from '../lib/api'
+import { type GameListItem, gameColor } from '../lib/api'
 
 export function FeaturedBanner({ game }: { game: GameListItem }) {
   const color = gameColor(game)
-  const tags = getGameTags(game)
 
   return (
     <Link
@@ -45,9 +44,9 @@ export function FeaturedBanner({ game }: { game: GameListItem }) {
           )}
 
           <div className="flex flex-wrap gap-1.5 justify-center md:justify-start mb-5">
-            {tags.slice(0, 4).map((t) => (
-              <span key={t.slug} className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-2 py-0.5">
-                {t.name}
+            {game.tags.slice(0, 4).map((tag) => (
+              <span key={tag} className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-2 py-0.5">
+                {tag}
               </span>
             ))}
           </div>
@@ -63,7 +62,7 @@ export function FeaturedBanner({ game }: { game: GameListItem }) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
-              {game.play_count.toLocaleString()} plays
+              {game.plays.toLocaleString()} plays
             </span>
           </div>
         </div>

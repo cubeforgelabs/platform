@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { fetchGames, getGameTags, type GameListItem } from '../lib/api'
+import { fetchGames, type GameListItem } from '../lib/api'
 import { FeaturedBanner } from '../components/FeaturedBanner'
 import { GameCard } from '../components/GameCard'
 import { TagFilter } from '../components/TagFilter'
@@ -19,19 +19,18 @@ export function HomePage() {
   }, [])
 
   const tags = useMemo(() => {
-    const all = games.flatMap((g) => getGameTags(g).map((t) => t.name))
+    const all = games.flatMap((g) => g.tags)
     return [...new Set(all)].sort()
   }, [games])
 
   const featured = games[0] ?? null
 
   const filtered = games.filter((g) => {
-    const gameTags = getGameTags(g).map((t) => t.name)
-    const matchTag = tag === 'All' || gameTags.includes(tag)
+    const matchTag = tag === 'All' || g.tags.includes(tag)
     const matchSearch =
       !search ||
       g.title.toLowerCase().includes(search.toLowerCase()) ||
-      gameTags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+      g.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
     return matchTag && matchSearch
   })
 

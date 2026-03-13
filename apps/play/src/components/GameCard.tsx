@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
-import { type GameListItem, gameColor, getGameTags } from '../lib/api'
+import { type GameListItem, gameColor } from '../lib/api'
 
 export function GameCard({ game }: { game: GameListItem }) {
   const color = gameColor(game)
-  const tags = getGameTags(game)
 
   return (
     <Link
@@ -29,12 +28,21 @@ export function GameCard({ game }: { game: GameListItem }) {
           </div>
         </div>
 
+        {/* Badges */}
+        {game.is_official && (
+          <div className="absolute top-2 left-2">
+            <span className="text-[9px] font-bold uppercase tracking-wider rounded px-1.5 py-0.5" style={{ background: 'rgba(79,195,247,0.15)', color: '#4fc3f7', border: '1px solid rgba(79,195,247,0.25)' }}>
+              Official
+            </span>
+          </div>
+        )}
+
         {/* Play count */}
         <div className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-bg/70 backdrop-blur-sm px-2 py-0.5">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-muted">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
-          <span className="text-[10px] text-text-muted font-mono">{formatPlays(game.play_count)}</span>
+          <span className="text-[10px] text-text-muted font-mono">{formatPlays(game.plays)}</span>
         </div>
       </div>
 
@@ -47,9 +55,9 @@ export function GameCard({ game }: { game: GameListItem }) {
           {game.profiles?.display_name ?? game.profiles?.username ?? 'CubeForge'}
         </p>
         <div className="flex flex-wrap gap-1">
-          {tags.slice(0, 3).map((tag) => (
-            <span key={tag.slug} className="text-[10px] font-mono text-text-muted border border-border rounded px-1.5 py-0.5">
-              {tag.name}
+          {game.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="text-[10px] font-mono text-text-muted border border-border rounded px-1.5 py-0.5">
+              {tag}
             </span>
           ))}
         </div>

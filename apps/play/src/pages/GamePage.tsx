@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, gameBundleUrl } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
 import type { Tables } from '@cubeforgelabs/auth'
 
 type Game = Tables<'games'> & {
   profiles: Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
-  tags: { tags: Pick<Tables<'tags'>, 'name' | 'slug'> }[]
   avg_rating: number | null
   review_count: number
 }
@@ -30,25 +29,24 @@ export function GamePage() {
   useEffect(() => {
     if (!id) return
 
-    supabase.rpc('increment_play_count', { game_id: id })
+    supabase.rpc('increment_plays', { game_id: id })
 
     Promise.all([
       supabase
         .from('games')
-        .select(`*, profiles(username, display_name, avatar_url), game_tags(tags(name, slug))`)
+        .select('*, profiles(username, display_name, avatar_url)')
         .eq('id', id)
         .single(),
       supabase
         .from('reviews')
-        .select(`*, profiles(username, display_name, avatar_url)`)
+        .select('*, profiles(username, display_name, avatar_url)')
         .eq('game_id', id)
         .order('created_at', { ascending: false }),
     ]).then(([gameRes, reviewsRes]) => {
       if (gameRes.data) {
         const rows = reviewsRes.data ?? []
         const avg = rows.length ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : null
-        const base = gameRes.data as Tables<'games'>
-        setGame({ ...base, profiles: (gameRes.data as unknown as Game).profiles, tags: (gameRes.data as unknown as Game).tags, avg_rating: avg, review_count: rows.length })
+        setGame({ ...(gameRes.data as unknown as Game), avg_rating: avg, review_count: rows.length })
       }
       setReviews((reviewsRes.data as unknown as Review[]) ?? [])
       setLoading(false)
@@ -86,10 +84,10 @@ export function GamePage() {
     }
     const { data } = await supabase
       .from('reviews')
-      .select(`*, profiles(username, display_name, avatar_url)`)
+      .select('*, profiles(username, display_name, avatar_url)')
       .eq('game_id', id!)
       .order('created_at', { ascending: false })
-    setReviews((data as Review[]) ?? [])
+    setReviews((data as unknown as Review[]) ?? [])
     setMyReview({ rating: reviewRating, body: reviewBody })
     setSubmitting(false)
   }
@@ -103,7 +101,7 @@ export function GamePage() {
   )
 
   const author = game.profiles
-  const tags = game.tags?.map((t: { tags: { name: string; slug: string } }) => t.tags) ?? []
+  const iframeUrl = game.bundle_path ? gameBundleUrl(game.bundle_path) : null
 
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 md:py-10">
@@ -121,9 +119,9 @@ export function GamePage() {
         <div>
           {/* Game embed */}
           <div className="w-full aspect-[16/10] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
-            {playing ? (
+            {playing && iframeUrl ? (
               <iframe
-                src={game.game_url}
+                src={iframeUrl}
                 className="w-full h-full border-0"
                 allow="fullscreen"
                 title={game.title}
@@ -135,7 +133,8 @@ export function GamePage() {
                 )}
                 <button
                   onClick={() => setPlaying(true)}
-                  className="relative flex items-center gap-2.5 rounded-xl bg-accent px-8 py-3 text-sm font-semibold text-bg hover:bg-accent2 transition-colors"
+                  disabled={!iframeUrl}
+                  className="relative flex items-center gap-2.5 rounded-xl bg-accent px-8 py-3 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                     <polygon points="6 3 20 12 6 21 6 3" />
@@ -158,7 +157,6 @@ export function GamePage() {
               Reviews {reviews.length > 0 && <span className="text-text-muted font-normal">({reviews.length})</span>}
             </h2>
 
-            {/* Write review */}
             {user && !myReview && (
               <form onSubmit={submitReview} className="mb-6 flex flex-col gap-3 border-b border-border pb-6">
                 <div className="flex items-center gap-1">
@@ -225,11 +223,11 @@ export function GamePage() {
               {author?.avatar_url && (
                 <img src={author.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
               )}
-              <span className="text-sm text-text-dim">by {author?.display_name ?? author?.username}</span>
+              <span className="text-sm text-text-dim">by {author?.display_name ?? author?.username ?? 'CubeForge'}</span>
             </div>
 
             <div className="space-y-3 mb-5">
-              <InfoRow label="Plays" value={game.play_count.toLocaleString()} />
+              <InfoRow label="Plays" value={game.plays.toLocaleString()} />
               {game.avg_rating !== null && (
                 <InfoRow label="Rating" value={
                   <span className="flex items-center gap-1">
@@ -238,14 +236,15 @@ export function GamePage() {
                   </span>
                 } />
               )}
+              {game.is_official && <InfoRow label="Publisher" value="CubeForge" />}
               <InfoRow label="Engine" value="CubeForge" />
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {tags.map((t: { name: string; slug: string }) => (
-                <Link key={t.slug} to={`/browse?tag=${t.slug}`}
+              {game.tags.map((tag) => (
+                <Link key={tag} to={`/browse?tag=${tag}`}
                   className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-2 py-0.5 hover:bg-accent/5 transition-colors">
-                  {t.name}
+                  {tag}
                 </Link>
               ))}
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { fetchGames, getGameTags, type GameListItem } from '../lib/api'
+import { fetchGames, type GameListItem } from '../lib/api'
 import { GameCard } from '../components/GameCard'
 import { TagFilter } from '../components/TagFilter'
 import { SearchBar } from '../components/SearchBar'
@@ -21,22 +21,21 @@ export function BrowsePage() {
   }, [])
 
   const tags = useMemo(() => {
-    const all = games.flatMap((g) => getGameTags(g).map((t) => t.name))
+    const all = games.flatMap((g) => g.tags)
     return [...new Set(all)].sort()
   }, [games])
 
   const filtered = games
     .filter((g) => {
-      const gameTags = getGameTags(g).map((t) => t.name)
-      const matchTag = tag === 'All' || gameTags.includes(tag)
+      const matchTag = tag === 'All' || g.tags.includes(tag)
       const matchSearch =
         !search ||
         g.title.toLowerCase().includes(search.toLowerCase()) ||
-        gameTags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+        g.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
       return matchTag && matchSearch
     })
     .sort((a, b) => {
-      if (sort === 'popular') return b.play_count - a.play_count
+      if (sort === 'popular') return b.plays - a.plays
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
 

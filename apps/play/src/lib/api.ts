@@ -1,13 +1,8 @@
 import { supabase } from './supabase'
 import type { Tables } from '@cubeforgelabs/auth'
 
-export type GameRow = Tables<'games'>
-export type TagRow = Pick<Tables<'tags'>, 'name' | 'slug'>
-export type ProfileRow = Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
-
-export type GameListItem = GameRow & {
-  profiles: ProfileRow
-  game_tags: { tags: TagRow }[]
+export type GameListItem = Tables<'games'> & {
+  profiles: Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
 }
 
 function accentColor(str: string): string {
@@ -24,23 +19,19 @@ export function gameColor(game: GameListItem): string {
 export async function fetchGames(): Promise<GameListItem[]> {
   const { data, error } = await supabase
     .from('games')
-    .select('*, profiles(username, display_name, avatar_url), game_tags(tags(name, slug))')
-    .eq('published', true)
-    .order('play_count', { ascending: false })
+    .select('*, profiles(username, display_name, avatar_url)')
+    .not('bundle_path', 'is', null)
+    .order('plays', { ascending: false })
   if (error) throw error
-  return data as GameListItem[]
+  return data as unknown as GameListItem[]
 }
 
 export async function fetchGameById(id: string): Promise<GameListItem | null> {
   const { data, error } = await supabase
     .from('games')
-    .select('*, profiles(username, display_name, avatar_url), game_tags(tags(name, slug))')
+    .select('*, profiles(username, display_name, avatar_url)')
     .eq('id', id)
     .single()
   if (error) return null
-  return data as GameListItem
-}
-
-export function getGameTags(game: GameListItem): TagRow[] {
-  return game.game_tags?.map((gt) => gt.tags).filter(Boolean) ?? []
+  return data as unknown as GameListItem
 }
