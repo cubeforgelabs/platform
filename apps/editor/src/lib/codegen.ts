@@ -53,6 +53,12 @@ function genEntity(entity: CsxEntity, depth = 2, scriptImports: string[]): strin
 }
 
 export function csxToTsx(doc: CsxDocument): VFile[] {
+  // If there are no entities, preserve the existing main.tsx from doc.files (e.g. code-only templates)
+  const existingMain = doc.files.find(f => f.name === 'main.tsx')
+  if (doc.entities.length === 0 && existingMain) {
+    return doc.files
+  }
+
   const usedTypes = new Set<string>(['Entity'])
   const scriptImports: string[] = []
 

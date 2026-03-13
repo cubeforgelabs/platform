@@ -103,6 +103,10 @@ export function App() {
       if (loadedDoc.meta.game_id) {
         setPublishedUrl(`https://play.cubeforge.dev/game/${loadedDoc.meta.game_id}`)
       }
+      // Auto-run code-only templates in visual mode so the canvas isn't empty
+      if (loadedDoc.entities.length === 0 && loadedDoc.files.length > 0) {
+        setTimeout(() => handleRun(), 100)
+      }
     })
   }, [urlProjectId])
 
@@ -132,6 +136,10 @@ export function App() {
       setCodeFiles(files)
       setActiveCodeFile('main.tsx')
       setMonacoVersion(v => v + 1)
+    }
+    // In visual mode with no entities but template files, auto-run so the game shows in the canvas
+    if (viewMode === 'visual' && doc.entities.length === 0 && doc.files.length > 0) {
+      setTimeout(() => handleRun(), 0)
     }
   }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
