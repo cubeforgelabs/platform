@@ -83,5 +83,6 @@ ${entitiesCode}
 }
 `
 
-  return [{ name: 'main.tsx', content: mainTsx }, ...doc.files]
+  const otherFiles = doc.files.filter(f => f.name !== 'main.tsx')
+  return [{ name: 'main.tsx', content: mainTsx }, ...otherFiles]
 }
