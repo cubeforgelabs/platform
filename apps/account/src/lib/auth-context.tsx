@@ -22,17 +22,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function loadProfile(userId: string) {
-    console.log('[auth] loadProfile: starting SELECT for', userId)
     try {
       const queryPromise = supabase.from('profiles').select('*').eq('id', userId).single()
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('loadProfile timed out after 8s')), 8000)
       )
       const result = await Promise.race([queryPromise, timeoutPromise]) as Awaited<typeof queryPromise>
-      console.log('[auth] loadProfile: result', { data: result.data, error: result.error })
       setProfile(result.data ?? null)
     } catch (e) {
-      console.error('[auth] loadProfile: error', e)
       setProfile(null)
     }
   }
@@ -48,13 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // getSession() bootstraps the Supabase client's internal session cache so
     // that subsequent queries (upsert, select, etc.) can attach the auth header.
     // onAuthStateChange fires INITIAL_SESSION right after and loads the profile.
-    supabase.auth.getSession().then(({ data, error }) => {
-      console.log('[auth] getSession result:', { session: data.session, error })
-      console.log('[auth] user:', data.session?.user ?? null)
-      console.log('[auth] access_token:', data.session?.access_token ? data.session.access_token.slice(0, 40) + '...' : null)
-      console.log('[auth] localStorage keys:', Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-')))
-      console.log('[auth] cookies:', document.cookie)
-    })
+    supabase.auth.getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
       setSession(s)

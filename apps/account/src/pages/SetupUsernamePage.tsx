@@ -20,15 +20,9 @@ export function SetupUsernamePage() {
     setSaving(true)
     setError('')
     try {
-      console.log('[setup] upserting profile for user', user.id)
-      const upsertPromise = supabase
+      const result = await supabase
         .from('profiles')
         .upsert({ id: user.id, username: clean, username_confirmed: true })
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('upsert timed out after 8s')), 8000)
-      )
-      const result = await Promise.race([upsertPromise, timeoutPromise]) as Awaited<typeof upsertPromise>
-      console.log('[setup] upsert result:', { data: result.data, error: result.error })
       if (result.error) {
         setError(result.error.message.includes('unique') ? 'That username is already taken.' : result.error.message)
         return
