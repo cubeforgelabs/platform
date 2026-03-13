@@ -83,9 +83,27 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
-          <p className="text-xs text-text-muted">
-            &copy; {new Date().getFullYear()} CubeForge. Open source under MIT.
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <p className="text-xs text-text-muted">
+              &copy; {new Date().getFullYear()} CubeForge. Open source under MIT.
+            </p>
+            <a
+              href="https://voxire.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-dim transition-colors"
+            >
+              developed by
+              <img
+                src="https://cdn.voxire.dev/web_content/logo.webp"
+                alt="Voxire"
+                width={52}
+                height={16}
+                className="opacity-50 hover:opacity-80 transition-opacity"
+                style={{ objectFit: 'contain' }}
+              />
+            </a>
+          </div>
           <div className="flex items-center gap-5">
             {/* GitHub */}
             <a
