@@ -165,7 +165,7 @@ export function GamePage() {
         {/* Main */}
         <div>
           {/* Game embed */}
-          <div className="w-full aspect-[16/10] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
+          <div className="w-full aspect-[16/11] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
             {playing && srcdoc ? (
               <>
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
