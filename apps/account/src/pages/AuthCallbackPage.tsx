@@ -1,15 +1,19 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      navigate(data.session ? '/' : '/signin', { replace: true })
+      if (!data.session) { navigate('/signin', { replace: true }); return }
+      const next = searchParams.get('next')
+      if (next) { window.location.href = next; return }
+      navigate('/', { replace: true })
     })
-  }, [navigate])
+  }, [navigate, searchParams])
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center">

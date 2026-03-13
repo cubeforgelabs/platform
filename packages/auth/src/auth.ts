@@ -1,11 +1,13 @@
 import { getSupabaseClient } from './index'
 import type { Provider } from '@supabase/supabase-js'
 
-export async function signInWithOAuth(provider: Provider) {
+export async function signInWithOAuth(provider: Provider, redirectAfter?: string) {
   const supabase = getSupabaseClient()
+  const callbackUrl = new URL(`${window.location.origin}/auth/callback`)
+  if (redirectAfter) callbackUrl.searchParams.set('next', redirectAfter)
   return supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${window.location.origin}/auth/callback` },
+    options: { redirectTo: callbackUrl.toString() },
   })
 }
 

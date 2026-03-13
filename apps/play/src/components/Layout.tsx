@@ -34,7 +34,7 @@ export function Layout() {
               </a>
             ) : (
               <a
-                href="https://account.cubeforge.dev/signin"
+                href="https://account.cubeforge.dev/signin?redirect_to=https://play.cubeforge.dev"
                 className="rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-bg hover:bg-accent2 transition-colors"
               >
                 Sign In
