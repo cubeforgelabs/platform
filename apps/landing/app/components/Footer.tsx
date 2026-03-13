@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function Footer() {
   return (
     <footer className="relative border-t border-border bg-bg/90 backdrop-blur-sm py-12 md:py-16">
@@ -7,9 +9,10 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <a
               href="/"
-              className="inline-flex items-center gap-2 text-text font-bold text-lg mb-3"
+              className="inline-flex items-center gap-2.5 text-text font-mono font-semibold text-sm mb-3"
             >
-              <span className="text-accent font-mono">▣</span> CubeForge
+              <Image src="/favicon-96x96.png" alt="CubeForge" width={28} height={28} className="rounded-lg" />
+              cubeforge
             </a>
             <p className="text-xs text-text-dim leading-relaxed max-w-[200px]">
               A 2D game engine for the web. Build browser games with React
