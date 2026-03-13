@@ -19,78 +19,176 @@ export function SignInPage() {
     navigate('/')
   }
 
-  async function handleOAuth(provider: 'github' | 'google') {
-    await signInWithOAuth(provider)
-  }
-
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <a href="https://cubeforge.dev" className="text-accent font-bold text-xl tracking-tight">CubeForge</a>
-          <h1 className="text-lg font-semibold text-text mt-4">Sign in to your account</h1>
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 relative overflow-hidden">
+      <Atmosphere />
+
+      <div className="w-full max-w-[360px] relative z-10 fade-up">
+        <div className="text-center mb-7">
+          <a href="https://cubeforge.dev" className="inline-flex flex-col items-center gap-2.5 group">
+            <CubeLogo />
+            <span className="text-base font-semibold text-text tracking-tight group-hover:text-accent transition-colors">
+              CubeForge
+            </span>
+          </a>
+          <h1 className="text-xl font-semibold text-text mt-4">Welcome back</h1>
+          <p className="text-sm text-text-dim mt-1">Sign in to your account</p>
         </div>
 
-        <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4">
-          {/* OAuth */}
+        <div className="rounded-2xl p-6 flex flex-col gap-4" style={cardStyle}>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => handleOAuth('github')}
-              className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface2 px-4 py-2.5 text-sm text-text hover:border-border2 transition-colors"
-            >
-              <GithubIcon />
-              Continue with GitHub
-            </button>
-            <button
-              onClick={() => handleOAuth('google')}
-              className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface2 px-4 py-2.5 text-sm text-text hover:border-border2 transition-colors"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </button>
+            <OAuthBtn onClick={() => signInWithOAuth('github')}>
+              <GithubIcon /> Continue with GitHub
+            </OAuthBtn>
+            <OAuthBtn onClick={() => signInWithOAuth('google')}>
+              <GoogleIcon /> Continue with Google
+            </OAuthBtn>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-text-muted">or</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+          <Divider />
 
-          {/* Email form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Email address"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="rounded-xl border border-border bg-surface2 px-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent/40"
+              className="auth-input"
             />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="rounded-xl border border-border bg-surface2 px-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent/40"
-            />
-            {error && <p className="text-xs text-red">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50"
-            >
+            <div className="flex flex-col gap-1.5">
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="auth-input"
+              />
+              <div className="flex justify-end">
+                <span className="text-xs text-text-muted hover:text-accent transition-colors cursor-pointer select-none">
+                  Forgot password?
+                </span>
+              </div>
+            </div>
+
+            {error && <ErrorBanner>{error}</ErrorBanner>}
+
+            <PrimaryBtn type="submit" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
-            </button>
+            </PrimaryBtn>
           </form>
 
           <p className="text-center text-xs text-text-muted">
             No account?{' '}
-            <Link to="/signup" className="text-accent hover:underline">Sign up</Link>
+            <Link to="/signup" className="text-accent hover:text-accent2 transition-colors font-medium">
+              Create one free
+            </Link>
           </p>
         </div>
       </div>
     </div>
+  )
+}
+
+const cardStyle: React.CSSProperties = {
+  background: 'rgba(13, 15, 23, 0.85)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  backdropFilter: 'blur(20px)',
+  boxShadow: '0 32px 64px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+}
+
+function Atmosphere() {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden>
+      <div style={{
+        position: 'absolute', top: '-15%', left: '-5%',
+        width: '55vw', height: '55vw',
+        background: 'radial-gradient(circle, rgba(79,195,247,0.07) 0%, transparent 65%)',
+        borderRadius: '50%',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-20%', right: '-10%',
+        width: '45vw', height: '45vw',
+        background: 'radial-gradient(circle, rgba(79,195,247,0.04) 0%, transparent 65%)',
+        borderRadius: '50%',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+      }} />
+    </div>
+  )
+}
+
+function OAuthBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center justify-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-text transition-all"
+      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}
+      onMouseEnter={e => {
+        const el = e.currentTarget
+        el.style.background = 'rgba(255,255,255,0.07)'
+        el.style.borderColor = 'rgba(255,255,255,0.15)'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget
+        el.style.background = 'rgba(255,255,255,0.04)'
+        el.style.borderColor = 'rgba(255,255,255,0.09)'
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function PrimaryBtn({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...props}
+      className="rounded-xl py-2.5 text-sm font-semibold text-bg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{ background: '#4fc3f7', boxShadow: '0 0 20px rgba(79,195,247,0.2)' }}
+      onMouseEnter={e => { if (!props.disabled) (e.currentTarget as HTMLElement).style.boxShadow = '0 0 28px rgba(79,195,247,0.4)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(79,195,247,0.2)' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Divider() {
+  return (
+    <div className="flex items-center gap-3 py-0.5">
+      <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+      <span className="text-xs text-text-muted">or continue with email</span>
+      <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+    </div>
+  )
+}
+
+function ErrorBanner({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-lg px-3 py-2.5 text-xs text-red"
+      style={{ background: 'rgba(243,139,168,0.08)', border: '1px solid rgba(243,139,168,0.2)' }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function CubeLogo() {
+  return (
+    <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="38" height="38" rx="10" fill="rgba(79,195,247,0.1)" />
+      <polygon points="19,8 30,14 30,26 19,32 8,26 8,14" fill="none" stroke="rgba(79,195,247,0.2)" strokeWidth="1" />
+      <polygon points="19,8 30,14 19,20 8,14" fill="rgba(79,195,247,0.18)" stroke="rgba(79,195,247,0.55)" strokeWidth="1.3" />
+      <polygon points="8,14 19,20 19,32 8,26" fill="rgba(79,195,247,0.07)" stroke="rgba(79,195,247,0.35)" strokeWidth="1.3" />
+      <polygon points="30,14 19,20 19,32 30,26" fill="rgba(79,195,247,0.1)" stroke="rgba(79,195,247,0.4)" strokeWidth="1.3" />
+    </svg>
   )
 }
 

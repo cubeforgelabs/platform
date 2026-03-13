@@ -27,7 +27,6 @@ export function SettingsPage() {
 
   async function handleDeleteAccount() {
     if (!window.confirm('This will permanently delete your account and all your games. Are you sure?')) return
-    // Sign out — full account deletion requires a server function, flag for now
     await signOut()
     navigate('/signin')
   }
@@ -39,7 +38,6 @@ export function SettingsPage() {
         <p className="text-xs text-text-muted">{user?.email}</p>
       </div>
 
-      {/* Change password — only for email/password users */}
       <section className="flex flex-col gap-4">
         <h2 className="text-sm font-semibold text-text">Change password</h2>
         <form onSubmit={handlePasswordChange} className="flex flex-col gap-3">
@@ -50,7 +48,7 @@ export function SettingsPage() {
             onChange={e => setPassword(e.target.value)}
             minLength={8}
             required
-            className="rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40"
+            className="inner-input"
           />
           <input
             type="password"
@@ -58,27 +56,31 @@ export function SettingsPage() {
             value={confirmPw}
             onChange={e => setConfirmPw(e.target.value)}
             required
-            className="rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40"
+            className="inner-input"
           />
           {pwError && <p className="text-xs text-red">{pwError}</p>}
           {pwSuccess && <p className="text-xs text-green">Password updated.</p>}
           <button
             type="submit"
             disabled={saving}
-            className="self-start rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50"
+            className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+            style={{ background: '#4fc3f7' }}
           >
             {saving ? 'Saving…' : 'Update password'}
           </button>
         </form>
       </section>
 
-      {/* Danger zone */}
-      <section className="border border-red/20 rounded-2xl p-5 flex flex-col gap-3">
+      <section
+        className="rounded-2xl p-5 flex flex-col gap-3"
+        style={{ border: '1px solid rgba(243,139,168,0.2)' }}
+      >
         <h2 className="text-sm font-semibold text-red">Danger zone</h2>
         <p className="text-xs text-text-dim">Deleting your account is permanent and cannot be undone.</p>
         <button
           onClick={handleDeleteAccount}
-          className="self-start rounded-xl border border-red/30 px-5 py-2 text-sm text-red hover:bg-red/10 transition-colors"
+          className="self-start rounded-xl px-5 py-2 text-sm text-red transition-colors hover:bg-red/10"
+          style={{ border: '1px solid rgba(243,139,168,0.25)' }}
         >
           Delete account
         </button>

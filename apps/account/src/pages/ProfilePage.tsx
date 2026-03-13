@@ -67,29 +67,27 @@ export function ProfilePage() {
       {editing ? (
         <form onSubmit={handleSave} className="flex flex-col gap-3">
           <Field label="Display name">
-            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
-              className="w-full rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40" />
+            <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="inner-input" />
           </Field>
           <Field label="Username">
-            <input value={username} onChange={e => setUsername(e.target.value)} required
-              className="w-full rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40" />
+            <input value={username} onChange={e => setUsername(e.target.value)} required className="inner-input" />
           </Field>
           <Field label="Bio">
-            <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
-              className="w-full rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40 resize-none" />
+            <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="inner-input" />
           </Field>
           <Field label="Website">
-            <input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://"
-              className="w-full rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/40" />
+            <input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://" className="inner-input" />
           </Field>
           {error && <p className="text-xs text-red">{error}</p>}
           <div className="flex gap-2 pt-1">
             <button type="submit" disabled={saving}
-              className="rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50">
+              className="rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+              style={{ background: '#4fc3f7' }}>
               {saving ? 'Saving…' : 'Save'}
             </button>
             <button type="button" onClick={() => setEditing(false)}
-              className="rounded-xl border border-border px-5 py-2 text-sm text-text-dim hover:text-text transition-colors">
+              className="rounded-xl px-5 py-2 text-sm text-text-dim hover:text-text transition-colors"
+              style={{ border: '1px solid rgba(255,255,255,0.09)' }}>
               Cancel
             </button>
           </div>
