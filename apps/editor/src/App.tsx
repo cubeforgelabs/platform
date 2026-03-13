@@ -11,6 +11,7 @@ import { HierarchyPanel } from './components/HierarchyPanel'
 import { InspectorPanel } from './components/InspectorPanel'
 import { CanvasOverlay } from './components/CanvasOverlay'
 import { PublishModal } from './components/PublishModal'
+import { AssetPanel } from './components/AssetPanel'
 
 type ViewMode = 'visual' | 'code'
 type RunStatus = { kind: 'idle' } | { kind: 'ok' } | { kind: 'building' } | { kind: 'error'; message: string }
@@ -57,6 +58,7 @@ export function App() {
   const [projectLoaded, setProjectLoaded] = useState(false)
 
   // Publish
+  const [leftTab, setLeftTab] = useState<'scene' | 'assets'>('scene')
   const [showPublish, setShowPublish] = useState(false)
   const [publishedUrl, setPublishedUrl] = useState<string | null>(doc.meta.game_id ? `https://play.cubeforge.dev/game/${doc.meta.game_id}` : null)
 
@@ -317,12 +319,20 @@ export function App() {
       <div className="editor-body">
         {/* Left panel */}
         <div className="left-panel">
-          <HierarchyPanel
-            doc={doc}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onChange={handleDocChange}
-          />
+          <div className="left-tabs">
+            <button className={`left-tab${leftTab === 'scene' ? ' active' : ''}`} onClick={() => setLeftTab('scene')}>Scene</button>
+            <button className={`left-tab${leftTab === 'assets' ? ' active' : ''}`} onClick={() => setLeftTab('assets')}>Assets</button>
+          </div>
+          {leftTab === 'scene' ? (
+            <HierarchyPanel
+              doc={doc}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onChange={handleDocChange}
+            />
+          ) : (
+            <AssetPanel projectId={projectId} />
+          )}
         </div>
 
         {/* Center panel */}

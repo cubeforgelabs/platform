@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listProjects, deleteProject, createProject } from '../lib/projects'
-import { createEmptyDocument } from '../lib/csx'
+import { createEmptyDocument, type CsxDocument } from '../lib/csx'
 import { useAuth } from '../lib/auth-context'
+import { TEMPLATES } from '../templates'
 
 interface ProjectItem {
   id: string
@@ -19,6 +20,7 @@ export function DashboardPage() {
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
   const [showNew, setShowNew] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('__blank__')
 
   useEffect(() => {
     listProjects().then(p => { setProjects(p); setLoading(false) })
@@ -27,7 +29,11 @@ export function DashboardPage() {
   async function handleCreate() {
     if (!newName.trim()) return
     setCreating(true)
-    const doc = createEmptyDocument(newName.trim())
+    let doc: CsxDocument = createEmptyDocument(newName.trim())
+    if (selectedTemplate !== '__blank__') {
+      const tpl = TEMPLATES.find(t => t.id === selectedTemplate)
+      if (tpl) doc = { ...doc, files: tpl.files }
+    }
     const id = await createProject(newName.trim(), doc)
     setCreating(false)
     if (id) navigate(`/project/${id}`)
@@ -96,18 +102,51 @@ export function DashboardPage() {
         {/* New project dialog */}
         {showNew && (
           <div className="dashboard-new-card">
-            <input
-              autoFocus
-              className="dashboard-new-input"
-              placeholder="Project name…"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setShowNew(false) }}
-            />
-            <button className="dashboard-create-btn" onClick={handleCreate} disabled={creating || !newName.trim()}>
-              {creating ? 'Creating…' : 'Create'}
-            </button>
-            <button className="dashboard-cancel-btn" onClick={() => { setShowNew(false); setNewName('') }}>Cancel</button>
+            <div className="dashboard-new-header">
+              <h3>New project</h3>
+              <button className="dashboard-cancel-btn" onClick={() => { setShowNew(false); setNewName(''); setSelectedTemplate('__blank__') }}>✕</button>
+            </div>
+
+            <div className="dashboard-new-field">
+              <label>Project name</label>
+              <input
+                autoFocus
+                className="dashboard-new-input"
+                placeholder="My Awesome Game"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setShowNew(false) }}
+              />
+            </div>
+
+            <div className="dashboard-new-field">
+              <label>Start from</label>
+              <div className="dashboard-templates">
+                <button
+                  className={`dashboard-template-card${selectedTemplate === '__blank__' ? ' active' : ''}`}
+                  onClick={() => setSelectedTemplate('__blank__')}
+                >
+                  <span className="dashboard-template-icon">⬜</span>
+                  <span className="dashboard-template-name">Blank</span>
+                </button>
+                {TEMPLATES.map(t => (
+                  <button
+                    key={t.id}
+                    className={`dashboard-template-card${selectedTemplate === t.id ? ' active' : ''}`}
+                    onClick={() => setSelectedTemplate(t.id)}
+                  >
+                    <span className="dashboard-template-icon">{t.icon}</span>
+                    <span className="dashboard-template-name">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="dashboard-new-actions">
+              <button className="dashboard-create-btn" onClick={handleCreate} disabled={creating || !newName.trim()}>
+                {creating ? 'Creating…' : 'Create project'}
+              </button>
+            </div>
           </div>
         )}
 
