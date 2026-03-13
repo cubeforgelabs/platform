@@ -109,8 +109,19 @@ export function GamePage() {
     if (data) {
       const slug = game!.bundle_path.split('/')[0]
       const baseUrl = gameBundleUrl(`${slug}/`)
+      // Patch: set crossOrigin='anonymous' on all images before src is set,
+      // so WebGL texImage2D doesn't fail on cross-origin Supabase storage assets.
+      const corsScript = `<script>
+(function(){
+  var NI=window.Image;
+  function PI(w,h){var i=new NI(w,h);i.crossOrigin='anonymous';return i;}
+  PI.prototype=NI.prototype;window.Image=PI;
+  var oc=document.createElement.bind(document);
+  document.createElement=function(t){var e=oc(t);if(t&&t.toLowerCase()==='img')e.crossOrigin='anonymous';return e;};
+})();
+<\/script>`
       let html = await data.text()
-      html = html.replace('<head>', `<head><base href="${baseUrl}">`)
+      html = html.replace('<head>', `<head><base href="${baseUrl}">${corsScript}`)
       setSrcdoc(html)
     }
     setPlaying(true)

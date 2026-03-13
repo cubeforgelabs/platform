@@ -45,7 +45,7 @@ export function HomePage() {
 
       {/* Controls */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <div className="flex-1 w-full md:w-auto">
+        <div className="flex-1 w-full md:w-auto max-w-[800px]">
           <TagFilter tags={tags} active={tag} onChange={setTag} />
         </div>
         <div className="w-full md:w-72">
