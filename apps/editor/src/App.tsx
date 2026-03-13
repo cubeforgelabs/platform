@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Editor, { type Monaco } from '@monaco-editor/react'
 import { compile, bundle, buildIframeSrcdoc } from './compiler'
 import { csxToTsx } from './lib/codegen'
+import { tsxToCsx, isCsxGeneratedCode } from './lib/tsxToCsx'
 import { saveProject, loadProject } from './lib/projects'
 import { createEmptyDocument, type CsxDocument } from './lib/csx'
 import { touch } from './lib/csxUtils'
@@ -88,16 +89,19 @@ export function App() {
     if (!urlProjectId) { setProjectLoaded(true); return }
     loadProject(urlProjectId).then(result => {
       if (!result) { setProjectLoaded(true); return }
-      setDoc(result.doc)
-      setProjectName(result.doc.meta.name)
+      let loadedDoc = result.doc
+      // If project has template files but no entities, parse them into the entity tree
+      const mainFile = loadedDoc.files.find(f => f.name === 'main.tsx')
+      if (mainFile && isCsxGeneratedCode(mainFile.content) && loadedDoc.entities.length === 0) {
+        loadedDoc = tsxToCsx(mainFile.content, loadedDoc)
+        loadedDoc.files = loadedDoc.files.filter(f => f.name !== 'main.tsx')
+      }
+      setDoc(loadedDoc)
+      setProjectName(loadedDoc.meta.name)
       setProjectId(result.id)
       setProjectLoaded(true)
-      if (result.doc.meta.game_id) {
-        setPublishedUrl(`https://play.cubeforge.dev/game/${result.doc.meta.game_id}`)
-      }
-      // Auto-switch to code mode for code-only templates (have files but no visual entities)
-      if (result.doc.files.length > 0 && result.doc.entities.length === 0) {
-        setViewMode('code')
+      if (loadedDoc.meta.game_id) {
+        setPublishedUrl(`https://play.cubeforge.dev/game/${loadedDoc.meta.game_id}`)
       }
     })
   }, [urlProjectId])
@@ -254,7 +258,19 @@ export function App() {
         <div className="view-toggle">
           <button
             className={`view-toggle-btn${viewMode === 'visual' ? ' active' : ''}`}
-            onClick={() => { setViewMode('visual'); setIsPlaying(false) }}
+            onClick={() => {
+              // Sync code → visual: parse main.tsx back into entities
+              if (viewMode === 'code') {
+                const mainFile = codeFiles.find(f => f.name === 'main.tsx')
+                if (mainFile && isCsxGeneratedCode(mainFile.content)) {
+                  const updated = tsxToCsx(mainFile.content, doc)
+                  const otherFiles = codeFiles.filter(f => f.name !== 'main.tsx')
+                  setDoc({ ...updated, files: otherFiles })
+                }
+              }
+              setViewMode('visual')
+              setIsPlaying(false)
+            }}
           >
             Visual
           </button>
