@@ -109,11 +109,11 @@ export function compile(source: string): CompileResult | CompileError {
 export function buildIframeSrcdoc(compiledCode: string): string {
   const importMap = JSON.stringify({
     imports: {
-      'react':             'https://esm.sh/react@18',
-      'react-dom':         'https://esm.sh/react-dom@18',
-      'react-dom/client':  'https://esm.sh/react-dom@18/client',
-      'react/jsx-runtime': 'https://esm.sh/react@18/jsx-runtime',
-      'cubeforge':         'https://esm.sh/cubeforge@latest?deps=react@18,react-dom@18',
+      'react':             'https://esm.sh/react@19',
+      'react-dom':         'https://esm.sh/react-dom@19',
+      'react-dom/client':  'https://esm.sh/react-dom@19/client',
+      'react/jsx-runtime': 'https://esm.sh/react@19/jsx-runtime',
+      'cubeforge':         'https://esm.sh/cubeforge@latest?deps=react@19,react-dom@19',
     },
   })
 
