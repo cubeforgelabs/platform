@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase, gameBundleUrl } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
@@ -22,6 +22,8 @@ export function GamePage() {
   const [isFavorited, setIsFavorited] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [srcdoc, setSrcdoc] = useState<string | null>(null)
+  const [muted, setMuted] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [loading, setLoading] = useState(true)
   const [reviewBody, setReviewBody] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
@@ -103,25 +105,46 @@ export function GamePage() {
 
   const author = game.profiles
 
+  function toggleMute() {
+    const next = !muted
+    setMuted(next)
+    iframeRef.current?.contentWindow?.postMessage({ cf: next }, '*')
+  }
+
+  function toggleFullscreen() {
+    iframeRef.current?.requestFullscreen?.()
+  }
+
   async function startPlaying() {
     if (!game!.bundle_path) return
     const { data } = await supabase.storage.from('games').download(game!.bundle_path)
     if (data) {
       const slug = game!.bundle_path.split('/')[0]
       const baseUrl = gameBundleUrl(`${slug}/`)
-      // Patch: set crossOrigin='anonymous' on all images before src is set,
-      // so WebGL texImage2D doesn't fail on cross-origin Supabase storage assets.
-      const corsScript = `<script>
+      const patchScript = `<script>
 (function(){
+  // CORS fix: set crossOrigin before src so WebGL texImage2D works cross-origin
   var NI=window.Image;
   function PI(w,h){var i=new NI(w,h);i.crossOrigin='anonymous';return i;}
   PI.prototype=NI.prototype;window.Image=PI;
   var oc=document.createElement.bind(document);
   document.createElement=function(t){var e=oc(t);if(t&&t.toLowerCase()==='img')e.crossOrigin='anonymous';return e;};
+  // Mute bridge: intercept AudioContext, expose master gain via postMessage
+  var gains=[];
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(Ctx){
+    function PCtx(){var c=new Ctx();var g=c.createGain();g.connect(c.destination);gains.push(g);Object.defineProperty(c,'destination',{get:function(){return g;}});return c;}
+    PCtx.prototype=Ctx.prototype;
+    window.AudioContext=PCtx;if(window.webkitAudioContext)window.webkitAudioContext=PCtx;
+  }
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.cf===undefined)return;
+    gains.forEach(function(g){g.gain.setValueAtTime(e.data.cf?0:1,0);});
+  });
 })();
 <\/script>`
       let html = await data.text()
-      html = html.replace('<head>', `<head><base href="${baseUrl}">${corsScript}`)
+      html = html.replace('<head>', `<head><base href="${baseUrl}">${patchScript}`)
       setSrcdoc(html)
     }
     setPlaying(true)
@@ -144,14 +167,38 @@ export function GamePage() {
           {/* Game embed */}
           <div className="w-full aspect-[16/10] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
             {playing && srcdoc ? (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <iframe
-                {...{ srcdoc } as any}
-                className="w-full h-full border-0"
-                allow="fullscreen; autoplay"
-                sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
-                title={game.title}
-              />
+              <>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <iframe
+                  ref={iframeRef}
+                  {...{ srcdoc } as any}
+                  className="w-full h-full border-0"
+                  allow="fullscreen; autoplay"
+                  sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms"
+                  title={game.title}
+                />
+                {/* Game toolbar */}
+                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-end gap-1 px-2 py-1.5 opacity-0 hover:opacity-100 transition-opacity duration-150"
+                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)' }}>
+                  <GameToolbarBtn onClick={toggleMute} title={muted ? 'Unmute' : 'Mute'}>
+                    {muted ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="2" y1="2" x2="22" y2="22"/><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                      </svg>
+                    )}
+                  </GameToolbarBtn>
+                  <GameToolbarBtn onClick={toggleFullscreen} title="Fullscreen">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                      <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                    </svg>
+                  </GameToolbarBtn>
+                </div>
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center relative">
                 {game.thumbnail_url && (
@@ -305,6 +352,18 @@ export function GamePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function GameToolbarBtn({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className="flex items-center justify-center w-7 h-7 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+    >
+      {children}
+    </button>
   )
 }
 
