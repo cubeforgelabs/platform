@@ -4,6 +4,7 @@ import { listProjects, deleteProject, createProject } from '../lib/projects'
 import { createEmptyDocument, type CsxDocument } from '../lib/csx'
 import { useAuth } from '../lib/auth-context'
 import { TEMPLATES } from '../templates'
+import { UserMenu } from '@cubeforgelabs/ui'
 
 interface ProjectItem {
   id: string
@@ -83,13 +84,16 @@ export function DashboardPage() {
 
         <div className="toolbar-divider" />
 
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="" className="dashboard-avatar" />
-        ) : (
-          <div className="dashboard-avatar-initial">{initials}</div>
+        {user && (
+          <UserMenu
+            avatarUrl={profile?.avatar_url}
+            displayName={profile?.display_name}
+            username={profile?.username}
+            email={user.email}
+            onSignOut={signOut}
+            variant="toolbar"
+          />
         )}
-
-        <button className="dashboard-signout" onClick={() => signOut()}>Sign out</button>
       </div>
 
       {/* Main content */}

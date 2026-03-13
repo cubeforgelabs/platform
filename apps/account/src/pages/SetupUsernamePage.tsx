@@ -57,7 +57,7 @@ export function SetupUsernamePage() {
                   required
                   minLength={3}
                   maxLength={30}
-                  pattern="[a-zA-Z0-9_-]+"
+                  pattern="[a-zA-Z0-9_\-]+"
                   autoFocus
                   className="w-full rounded-xl border border-border bg-surface2 pl-7 pr-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent/40"
                 />
