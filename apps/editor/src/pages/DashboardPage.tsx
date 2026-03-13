@@ -101,53 +101,57 @@ export function DashboardPage() {
           </button>
         </div>
 
-        {/* New project dialog */}
+        {/* New project modal */}
         {showNew && (
-          <div className="dashboard-new-card">
-            <div className="dashboard-new-header">
-              <h3>New project</h3>
-              <button className="dashboard-cancel-btn" onClick={() => { setShowNew(false); setNewName(''); setSelectedTemplate('__blank__') }}>✕</button>
-            </div>
-
-            <div className="dashboard-new-field">
-              <label>Project name</label>
-              <input
-                autoFocus
-                className="dashboard-new-input"
-                placeholder="My Awesome Game"
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setShowNew(false) }}
-              />
-            </div>
-
-            <div className="dashboard-new-field">
-              <label>Start from</label>
-              <div className="dashboard-templates">
-                <button
-                  className={`dashboard-template-card${selectedTemplate === '__blank__' ? ' active' : ''}`}
-                  onClick={() => setSelectedTemplate('__blank__')}
-                >
-                  <span className="dashboard-template-icon">⬜</span>
-                  <span className="dashboard-template-name">Blank</span>
+          <div className="dashboard-modal-backdrop" onClick={e => { if (e.target === e.currentTarget) { setShowNew(false); setNewName(''); setSelectedTemplate('__blank__') } }}>
+            <div className="dashboard-modal">
+              <div className="dashboard-new-header">
+                <h3>New project</h3>
+                <button className="dashboard-cancel-btn" onClick={() => { setShowNew(false); setNewName(''); setSelectedTemplate('__blank__') }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
-                {TEMPLATES.map(t => (
-                  <button
-                    key={t.id}
-                    className={`dashboard-template-card${selectedTemplate === t.id ? ' active' : ''}`}
-                    onClick={() => setSelectedTemplate(t.id)}
-                  >
-                    <span className="dashboard-template-icon">{t.icon}</span>
-                    <span className="dashboard-template-name">{t.label}</span>
-                  </button>
-                ))}
               </div>
-            </div>
 
-            <div className="dashboard-new-actions">
-              <button className="dashboard-create-btn" onClick={handleCreate} disabled={creating || !newName.trim()}>
-                {creating ? 'Creating…' : 'Create project'}
-              </button>
+              <div className="dashboard-new-field">
+                <label>Project name</label>
+                <input
+                  autoFocus
+                  className="dashboard-new-input"
+                  placeholder="My Awesome Game"
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') { setShowNew(false); setNewName('') } }}
+                />
+              </div>
+
+              <div className="dashboard-new-field">
+                <label>Start from</label>
+                <div className="dashboard-templates">
+                  <button
+                    className={`dashboard-template-card${selectedTemplate === '__blank__' ? ' active' : ''}`}
+                    onClick={() => setSelectedTemplate('__blank__')}
+                  >
+                    <span className="dashboard-template-icon"><TemplateIcon id="__blank__" /></span>
+                    <span className="dashboard-template-name">Blank</span>
+                  </button>
+                  {TEMPLATES.map(t => (
+                    <button
+                      key={t.id}
+                      className={`dashboard-template-card${selectedTemplate === t.id ? ' active' : ''}`}
+                      onClick={() => setSelectedTemplate(t.id)}
+                    >
+                      <span className="dashboard-template-icon"><TemplateIcon id={t.id} /></span>
+                      <span className="dashboard-template-name">{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="dashboard-new-actions">
+                <button className="dashboard-create-btn" onClick={handleCreate} disabled={creating || !newName.trim()}>
+                  {creating ? 'Creating…' : 'Create project'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -198,6 +202,26 @@ export function DashboardPage() {
       </div>
     </div>
   )
+}
+
+function TemplateIcon({ id }: { id: string }) {
+  const s = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  switch (id) {
+    case '__blank__': return <svg {...s}><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+    case 'platformer': return <svg {...s}><circle cx="12" cy="5" r="2"/><path d="M12 7v5"/><path d="M9 10l3 2 3-2"/><path d="M10 17l2-5 2 5"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+    case 'particles': return <svg {...s}><circle cx="12" cy="12" r="1.5"/><circle cx="5" cy="7" r="1"/><circle cx="19" cy="7" r="1"/><circle cx="5" cy="17" r="1"/><circle cx="19" cy="17" r="1"/><path d="M12 10.5L6 8M12 10.5l6-2.5M12 13.5l-6 2M12 13.5l6 2"/></svg>
+    case 'physics': return <svg {...s}><path d="M13 2L4 13h7l-2 9 9-12h-7l2-8z"/></svg>
+    case 'combat': return <svg {...s}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    case 'camera': return <svg {...s}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    case 'script': return <svg {...s}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    case 'triggers': return <svg {...s}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    case 'shapes': return <svg {...s}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    case 'top-down': return <svg {...s}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
+    case 'input-map': return <svg {...s}><rect x="2" y="8" width="20" height="13" rx="2"/><path d="M12 12v4M10 14h4"/><circle cx="7" cy="14" r="1" fill="currentColor"/><circle cx="17" cy="12" r="1" fill="currentColor"/><circle cx="17" cy="16" r="1" fill="currentColor"/></svg>
+    case 'timers': return <svg {...s}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    case 'empty': return <svg {...s}><circle cx="12" cy="12" r="9" strokeDasharray="3 3"/><path d="M12 8v4M12 16h.01"/></svg>
+    default: return <svg {...s}><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+  }
 }
 
 function formatDate(iso: string): string {

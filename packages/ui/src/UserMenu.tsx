@@ -7,6 +7,7 @@ export interface UserMenuProps {
   username?: string | null
   email?: string | null
   accountUrl?: string
+  showAccountLink?: boolean
   onSignOut: () => void
   /** Visual variant — 'toolbar' for dark editor bars, 'navbar' for nav strips */
   variant?: 'toolbar' | 'navbar'
@@ -18,6 +19,7 @@ export function UserMenu({
   username,
   email,
   accountUrl = 'https://account.cubeforge.dev',
+  showAccountLink = true,
   onSignOut,
   variant = 'toolbar',
 }: UserMenuProps) {
@@ -71,20 +73,23 @@ export function UserMenu({
 
           <div style={dividerStyle} />
 
-          <a
-            href={accountUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={itemStyle}
-            onClick={() => setOpen(false)}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-            </svg>
-            Account
-          </a>
-
-          <div style={dividerStyle} />
+          {showAccountLink && (
+            <>
+              <a
+                href={accountUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={itemStyle}
+                onClick={() => setOpen(false)}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
+                Account
+              </a>
+              <div style={dividerStyle} />
+            </>
+          )}
 
           <button
             style={{ ...itemStyle, color: '#f38ba8', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}

@@ -40,6 +40,7 @@ export function Layout() {
             username={profile?.username}
             onSignOut={handleSignOut}
             variant="navbar"
+            showAccountLink={false}
           />
         </div>
       </header>
