@@ -51,9 +51,17 @@ export function GameCard({ game }: { game: GameListItem }) {
         <h3 className="font-semibold text-sm text-text group-hover:text-accent transition-colors truncate mb-1">
           {game.title}
         </h3>
-        <p className="text-xs text-text-muted mb-2 truncate">
-          {game.profiles?.display_name ?? game.profiles?.username ?? 'CubeForge'}
-        </p>
+        {game.profiles?.username ? (
+          <Link
+            to={`/user/${game.profiles.username}`}
+            onClick={e => e.stopPropagation()}
+            className="text-xs text-text-muted mb-2 truncate block hover:text-accent transition-colors"
+          >
+            {game.profiles.display_name ?? game.profiles.username}
+          </Link>
+        ) : (
+          <p className="text-xs text-text-muted mb-2 truncate">CubeForge</p>
+        )}
         <div className="flex flex-wrap gap-1">
           {game.tags.slice(0, 3).map((tag) => (
             <span key={tag} className="text-[10px] font-mono text-text-muted border border-border rounded px-1.5 py-0.5">

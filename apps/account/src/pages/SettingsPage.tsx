@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { supabase } from '../lib/supabase'
@@ -20,7 +20,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 }
 
 export function SettingsPage() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
@@ -29,8 +29,29 @@ export function SettingsPage() {
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isPublic, setIsPublic] = useState(true)
+  const [showFavorites, setShowFavorites] = useState(true)
+  const [privacySaving, setPrivacySaving] = useState(false)
+  const [privacySaved, setPrivacySaved] = useState(false)
 
   const oauthProvider = getProvider(user)
+
+  useEffect(() => {
+    if (profile) {
+      setIsPublic(profile.is_public)
+      setShowFavorites(profile.show_favorites)
+    }
+  }, [profile])
+
+  async function savePrivacy() {
+    if (!user) return
+    setPrivacySaving(true)
+    await supabase.from('profiles').update({ is_public: isPublic, show_favorites: showFavorites }).eq('id', user.id)
+    await refreshProfile()
+    setPrivacySaving(false)
+    setPrivacySaved(true)
+    setTimeout(() => setPrivacySaved(false), 3000)
+  }
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault()
@@ -135,6 +156,37 @@ export function SettingsPage() {
         )}
       </section>
 
+      {/* Privacy */}
+      <section
+        className="rounded-2xl flex flex-col gap-4 p-5"
+        style={{ background: '#13151f', border: '1px solid #1f2435' }}
+      >
+        <h2 className="text-sm font-semibold text-text">Privacy</h2>
+        <ToggleRow
+          label="Public profile"
+          description="Anyone can view your profile page on play.cubeforge.dev"
+          checked={isPublic}
+          onChange={setIsPublic}
+        />
+        <ToggleRow
+          label="Show favorites"
+          description="Display your favorited games on your public profile"
+          checked={showFavorites}
+          onChange={setShowFavorites}
+        />
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            onClick={savePrivacy}
+            disabled={privacySaving}
+            className="rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+            style={{ background: '#4fc3f7' }}
+          >
+            {privacySaving ? 'Saving…' : 'Save privacy'}
+          </button>
+          {privacySaved && <span className="text-xs" style={{ color: '#a6e3a1' }}>Saved</span>}
+        </div>
+      </section>
+
       {/* Danger zone */}
       <section
         className="rounded-2xl p-5 flex flex-col gap-3"
@@ -152,6 +204,29 @@ export function SettingsPage() {
           Delete account
         </button>
       </section>
+    </div>
+  )
+}
+
+function ToggleRow({ label, description, checked, onChange }: {
+  label: string; description: string; checked: boolean; onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm text-text">{label}</p>
+        <p className="text-xs text-text-muted mt-0.5">{description}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`relative shrink-0 w-10 h-5 rounded-full transition-colors mt-0.5 ${checked ? 'bg-accent' : 'bg-surface2'}`}
+        style={{ border: '1px solid #1f2435' }}
+      >
+        <span
+          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`}
+        />
+      </button>
     </div>
   )
 }

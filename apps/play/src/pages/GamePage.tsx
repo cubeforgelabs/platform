@@ -296,7 +296,13 @@ export function GamePage() {
               {author?.avatar_url && (
                 <img src={author.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
               )}
-              <span className="text-sm text-text-dim">by {author?.display_name ?? author?.username ?? 'CubeForge'}</span>
+              {author?.username ? (
+                <Link to={`/user/${author.username}`} className="text-sm text-text-dim hover:text-accent transition-colors">
+                  by {author.display_name ?? author.username}
+                </Link>
+              ) : (
+                <span className="text-sm text-text-dim">by CubeForge</span>
+              )}
             </div>
 
             <div className="space-y-3 mb-5">

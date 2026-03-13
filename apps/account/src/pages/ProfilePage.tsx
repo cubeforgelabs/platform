@@ -27,7 +27,7 @@ export function ProfilePage() {
     setError('')
     const { error } = await supabase
       .from('profiles')
-      .update({ display_name: displayName, username, bio, website })
+      .update({ display_name: displayName, username, bio, website, username_confirmed: true })
       .eq('id', user!.id)
     setSaving(false)
     if (error) { setError(error.message); return }
