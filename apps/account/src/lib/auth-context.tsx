@@ -22,8 +22,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function loadProfile(userId: string) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    setProfile(data ?? null)
+    console.log('[auth] loadProfile: starting SELECT for', userId)
+    try {
+      const queryPromise = supabase.from('profiles').select('*').eq('id', userId).single()
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('loadProfile timed out after 8s')), 8000)
+      )
+      const result = await Promise.race([queryPromise, timeoutPromise]) as Awaited<typeof queryPromise>
+      console.log('[auth] loadProfile: result', { data: result.data, error: result.error })
+      setProfile(result.data ?? null)
+    } catch (e) {
+      console.error('[auth] loadProfile: error', e)
+      setProfile(null)
+    }
   }
 
   async function refreshProfile() {
