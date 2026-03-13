@@ -22,21 +22,35 @@ export function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10 sm:py-16 relative">
       <PhysicsBg />
 
-      <div className="w-full max-w-[340px] relative z-10 fade-up">
-        <div className="text-center mb-6">
-          <a href="https://cubeforge.dev" className="inline-flex items-center gap-2 group mb-3">
-            <img src="/favicon.svg" alt="" width={26} height={26} className="rounded-md" />
-            <span className="text-sm font-medium text-text-dim group-hover:text-text transition-colors">CubeForge</span>
+      <div className="w-full max-w-md relative z-10 fade-up">
+        <div className="text-center mb-7">
+          <a href="https://cubeforge.dev" className="inline-flex items-center justify-center gap-2.5 group mb-3">
+            <img
+              src="/favicon-96x96.png"
+              alt="CubeForge"
+              width={28}
+              height={28}
+              className="rounded-lg shadow-sm"
+            />
+            <span className="text-sm font-medium text-text-dim group-hover:text-text transition-colors">
+              CubeForge
+            </span>
           </a>
-          <h1 className="text-2xl font-semibold text-text">Welcome back</h1>
-          <p className="text-sm text-text-dim mt-1">Sign in to your account</p>
+          <h1 className="text-[1.6rem] sm:text-2xl font-semibold text-text tracking-tight">
+            Welcome back
+          </h1>
+          <p className="text-sm text-text-dim mt-1">
+            Sign in to your account
+          </p>
         </div>
 
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'rgba(19,21,31,0.9)', backdropFilter: 'blur(12px)' }}>
-          <div className="p-5 flex flex-col gap-2.5">
+        <div
+          className="rounded-2xl border border-border/80 bg-surface/90 backdrop-blur-xl shadow-lg shadow-black/40 overflow-hidden"
+        >
+          <div className="px-5 pt-5 pb-3 flex flex-col gap-2.5">
             <OAuthButton onClick={() => signInWithOAuth('github')}>
               <GithubLogo /> Continue with GitHub
             </OAuthButton>
@@ -45,13 +59,13 @@ export function SignInPage() {
             </OAuthButton>
           </div>
 
-          <div className="flex items-center gap-3 px-5">
+          <div className="flex items-center gap-3 px-5 py-1.5">
             <div className="flex-1 h-px bg-border" />
             <span className="text-xs text-text-muted">or</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <form onSubmit={handleSubmit} className="p-5 pt-4 flex flex-col gap-2.5">
+          <form onSubmit={handleSubmit} className="px-5 pb-5 pt-3 flex flex-col gap-3">
             <input
               type="email"
               placeholder="Email"
@@ -72,8 +86,7 @@ export function SignInPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-bg disabled:opacity-60 mt-0.5"
-              style={{ background: 'var(--accent)' }}
+              className="w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-bg disabled:opacity-60 mt-1 bg-accent hover:bg-accent2 transition-colors"
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
               {loading ? 'Signing in…' : 'Sign in'}
@@ -94,10 +107,7 @@ function OAuthButton({ children, onClick }: { children: React.ReactNode; onClick
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-sm text-text transition-colors"
-      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}
-      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
-      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+      className="w-full flex items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-sm text-text bg-white/5 hover:bg-white/10 border border-border transition-colors"
     >
       {children}
     </button>
