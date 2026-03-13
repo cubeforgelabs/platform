@@ -8,6 +8,7 @@
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
+  "packageManager": "pnpm@10.28.2",
   "devDependencies": {
     "prettier": "^3.5.3",
     "turbo": "^2.5.0",

@@ -1,238 +1,296 @@
-import { useParams, Link } from "react-router-dom";
-import { games } from "../data/games";
+import { useEffect, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/auth-context'
+import type { Tables } from '@cubeforgelabs/auth'
+
+type Game = Tables<'games'> & {
+  profiles: Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
+  tags: { tags: Pick<Tables<'tags'>, 'name' | 'slug'> }[]
+  avg_rating: number | null
+  review_count: number
+}
+type Review = Tables<'reviews'> & {
+  profiles: Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
+}
 
 export function GamePage() {
-  const { slug } = useParams();
-  const game = games.find((g) => g.slug === slug);
+  const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
+  const [game, setGame] = useState<Game | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [myReview, setMyReview] = useState<{ rating: number; body: string } | null>(null)
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [reviewBody, setReviewBody] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [submitting, setSubmitting] = useState(false)
 
-  if (!game) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 md:px-6 py-20 text-center">
-        <h1 className="text-2xl font-bold text-text mb-4">Game not found</h1>
-        <Link to="/" className="text-sm text-accent hover:text-accent2">
-          Back to home
-        </Link>
-      </div>
-    );
+  useEffect(() => {
+    if (!id) return
+
+    // Increment play count via direct update (no RPC needed)
+    supabase.from('games').select('play_count').eq('id', id).single().then(({ data }) => {
+      if (data) supabase.from('games').update({ play_count: data.play_count + 1 }).eq('id', id).then(() => {})
+    })
+
+    Promise.all([
+      supabase
+        .from('games')
+        .select(`*, profiles(username, display_name, avatar_url), game_tags(tags(name, slug))`)
+        .eq('id', id)
+        .single(),
+      supabase
+        .from('reviews')
+        .select(`*, profiles(username, display_name, avatar_url)`)
+        .eq('game_id', id)
+        .order('created_at', { ascending: false }),
+    ]).then(([gameRes, reviewsRes]) => {
+      if (gameRes.data) {
+        const rows = reviewsRes.data ?? []
+        const avg = rows.length ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : null
+        const base = gameRes.data as Tables<'games'>
+        setGame({ ...base, profiles: (gameRes.data as unknown as Game).profiles, tags: (gameRes.data as unknown as Game).tags, avg_rating: avg, review_count: rows.length })
+      }
+      setReviews((reviewsRes.data as unknown as Review[]) ?? [])
+      setLoading(false)
+    })
+  }, [id])
+
+  useEffect(() => {
+    if (!user || !id) return
+    supabase.from('favorites').select('user_id').eq('user_id', user.id).eq('game_id', id).single()
+      .then(({ data }) => setIsFavorited(!!data))
+    const mine = reviews.find(r => r.user_id === user.id)
+    if (mine) setMyReview({ rating: mine.rating, body: mine.body ?? '' })
+  }, [user, id, reviews])
+
+  async function toggleFavorite() {
+    if (!user) { window.location.href = 'https://account.cubeforge.dev/signin'; return }
+    if (isFavorited) {
+      await supabase.from('favorites').delete().eq('user_id', user.id).eq('game_id', id!)
+      setIsFavorited(false)
+    } else {
+      await supabase.from('favorites').insert({ user_id: user.id, game_id: id! })
+      setIsFavorited(true)
+    }
   }
+
+  async function submitReview(e: React.FormEvent) {
+    e.preventDefault()
+    if (!user) { window.location.href = 'https://account.cubeforge.dev/signin'; return }
+    setSubmitting(true)
+    const existing = reviews.find(r => r.user_id === user.id)
+    if (existing) {
+      await supabase.from('reviews').update({ rating: reviewRating, body: reviewBody }).eq('id', existing.id)
+    } else {
+      await supabase.from('reviews').insert({ game_id: id!, user_id: user.id, rating: reviewRating, body: reviewBody })
+    }
+    const { data } = await supabase
+      .from('reviews')
+      .select(`*, profiles(username, display_name, avatar_url)`)
+      .eq('game_id', id!)
+      .order('created_at', { ascending: false })
+    setReviews((data as Review[]) ?? [])
+    setMyReview({ rating: reviewRating, body: reviewBody })
+    setSubmitting(false)
+  }
+
+  if (loading) return <div className="flex items-center justify-center py-40 text-sm text-text-dim">Loading…</div>
+  if (!game) return (
+    <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+      <h1 className="text-2xl font-bold text-text mb-4">Game not found</h1>
+      <Link to="/" className="text-sm text-accent hover:text-accent2">Back to home</Link>
+    </div>
+  )
+
+  const author = game.profiles
+  const tags = game.tags?.map((t: { tags: { name: string; slug: string } }) => t.tags) ?? []
 
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 md:py-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-text-muted mb-6">
-        <Link to="/" className="hover:text-text-dim transition-colors">
-          Home
-        </Link>
+        <Link to="/" className="hover:text-text-dim transition-colors">Home</Link>
         <span>/</span>
-        <Link to="/browse" className="hover:text-text-dim transition-colors">
-          Browse
-        </Link>
+        <Link to="/browse" className="hover:text-text-dim transition-colors">Browse</Link>
         <span>/</span>
         <span className="text-text-dim">{game.title}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-        {/* Main content */}
+        {/* Main */}
         <div>
-          {/* Game embed area */}
-          <div
-            className="w-full aspect-[16/10] rounded-2xl border border-border flex items-center justify-center mb-6 relative overflow-hidden"
-            style={{ background: `${game.color}08` }}
-          >
-            <div className="flex flex-col items-center gap-4">
-              <span
-                className="text-8xl font-bold font-mono opacity-10"
-                style={{ color: game.color }}
-              >
-                {game.title[0]}
-              </span>
-              <button
-                className="flex items-center gap-2.5 rounded-xl px-8 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
-                style={{ background: game.color }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  stroke="none"
+          {/* Game embed */}
+          <div className="w-full aspect-[16/10] rounded-2xl border border-border overflow-hidden mb-6 bg-black relative">
+            {playing ? (
+              <iframe
+                src={game.game_url}
+                className="w-full h-full border-0"
+                allow="fullscreen"
+                title={game.title}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center relative">
+                {game.thumbnail_url && (
+                  <img src={game.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                )}
+                <button
+                  onClick={() => setPlaying(true)}
+                  className="relative flex items-center gap-2.5 rounded-xl bg-accent px-8 py-3 text-sm font-semibold text-bg hover:bg-accent2 transition-colors"
                 >
-                  <polygon points="6 3 20 12 6 21 6 3" />
-                </svg>
-                Play Game
-              </button>
-            </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <polygon points="6 3 20 12 6 21 6 3" />
+                  </svg>
+                  Play Game
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Description */}
+          {/* About */}
           <div className="rounded-xl border border-border bg-surface/50 p-6 mb-6">
             <h2 className="text-sm font-semibold text-text mb-3">About</h2>
-            <p className="text-sm text-text-dim leading-relaxed">
-              {game.description}
-            </p>
+            <p className="text-sm text-text-dim leading-relaxed">{game.description ?? 'No description.'}</p>
           </div>
 
-          {/* Comments placeholder */}
+          {/* Reviews */}
           <div className="rounded-xl border border-border bg-surface/50 p-6">
             <h2 className="text-sm font-semibold text-text mb-4">
-              Comments
+              Reviews {reviews.length > 0 && <span className="text-text-muted font-normal">({reviews.length})</span>}
             </h2>
-            <div className="flex flex-col items-center py-8 text-center">
-              <p className="text-xs text-text-muted mb-2">
-                No comments yet
-              </p>
-              <button className="text-xs text-accent hover:text-accent2 transition-colors">
-                Sign in to leave a comment
-              </button>
-            </div>
+
+            {/* Write review */}
+            {user && !myReview && (
+              <form onSubmit={submitReview} className="mb-6 flex flex-col gap-3 border-b border-border pb-6">
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} type="button" onClick={() => setReviewRating(n)}
+                      className={`text-xl transition-colors ${n <= reviewRating ? 'text-yellow-400' : 'text-text-muted'}`}>★</button>
+                  ))}
+                </div>
+                <textarea
+                  value={reviewBody}
+                  onChange={e => setReviewBody(e.target.value)}
+                  placeholder="Share your thoughts…"
+                  rows={3}
+                  className="rounded-xl border border-border bg-surface2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent/40 resize-none"
+                />
+                <button type="submit" disabled={submitting}
+                  className="self-start rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-bg hover:bg-accent2 transition-colors disabled:opacity-50">
+                  {submitting ? 'Posting…' : 'Post review'}
+                </button>
+              </form>
+            )}
+
+            {!user && (
+              <div className="mb-6 text-center py-4 border-b border-border">
+                <a href="https://account.cubeforge.dev/signin" className="text-xs text-accent hover:underline">
+                  Sign in to leave a review
+                </a>
+              </div>
+            )}
+
+            {reviews.length === 0 ? (
+              <p className="text-xs text-text-muted text-center py-6">No reviews yet. Be the first!</p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {reviews.map(r => (
+                  <div key={r.id} className="flex gap-3">
+                    {r.profiles?.avatar_url ? (
+                      <img src={r.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-surface2 border border-border shrink-0 flex items-center justify-center text-xs font-bold text-accent">
+                        {(r.profiles?.display_name ?? r.profiles?.username ?? '?')[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-text">{r.profiles?.display_name ?? r.profiles?.username}</span>
+                        <span className="text-xs text-yellow-400">{'★'.repeat(r.rating)}<span className="text-text-muted">{'★'.repeat(5 - r.rating)}</span></span>
+                        <span className="text-[10px] text-text-muted">{new Date(r.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {r.body && <p className="text-xs text-text-dim leading-relaxed">{r.body}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
-          {/* Info card */}
           <div className="rounded-xl border border-border bg-surface/50 p-5">
             <h1 className="text-xl font-bold text-text mb-1">{game.title}</h1>
-            <p className="text-sm text-text-dim mb-4">by {game.author}</p>
+            <div className="flex items-center gap-2 mb-4">
+              {author?.avatar_url && (
+                <img src={author.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+              )}
+              <span className="text-sm text-text-dim">by {author?.display_name ?? author?.username}</span>
+            </div>
 
             <div className="space-y-3 mb-5">
-              <InfoRow label="Plays" value={game.plays.toLocaleString()} />
-              <InfoRow
-                label="Rating"
-                value={
+              <InfoRow label="Plays" value={game.play_count.toLocaleString()} />
+              {game.avg_rating !== null && (
+                <InfoRow label="Rating" value={
                   <span className="flex items-center gap-1">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="var(--warn)"
-                      stroke="none"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    {game.rating.toFixed(1)}
+                    <span className="text-yellow-400 text-xs">★</span>
+                    {game.avg_rating.toFixed(1)} <span className="text-text-muted">({game.review_count})</span>
                   </span>
-                }
-              />
+                } />
+              )}
               <InfoRow label="Engine" value="CubeForge" />
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {game.tags.map((t) => (
-                <Link
-                  key={t}
-                  to={`/browse?tag=${t}`}
-                  className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-2 py-0.5 hover:bg-accent/5 transition-colors"
-                >
-                  {t}
+              {tags.map((t: { name: string; slug: string }) => (
+                <Link key={t.slug} to={`/browse?tag=${t.slug}`}
+                  className="text-[10px] font-mono text-accent/70 border border-accent/20 rounded px-2 py-0.5 hover:bg-accent/5 transition-colors">
+                  {t.name}
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Actions */}
           <div className="rounded-xl border border-border bg-surface/50 p-5 space-y-2.5">
-            <button className="w-full rounded-lg border border-border bg-surface2 px-4 py-2 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all flex items-center justify-center gap-2">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+            <button
+              onClick={toggleFavorite}
+              className={`w-full rounded-lg border px-4 py-2 text-xs font-medium transition-all flex items-center justify-center gap-2 ${
+                isFavorited
+                  ? 'border-red/30 bg-red/10 text-red'
+                  : 'border-border bg-surface2 text-text-dim hover:text-text hover:border-border2'
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              Favorite
+              {isFavorited ? 'Favorited' : 'Favorite'}
             </button>
-            <button className="w-full rounded-lg border border-border bg-surface2 px-4 py-2 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all flex items-center justify-center gap-2">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+            <button
+              onClick={() => navigator.clipboard.writeText(window.location.href)}
+              className="w-full rounded-lg border border-border bg-surface2 px-4 py-2 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all flex items-center justify-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                 <polyline points="16 6 12 2 8 6" />
                 <line x1="12" y1="2" x2="12" y2="15" />
               </svg>
               Share
             </button>
-            <button className="w-full rounded-lg border border-border bg-surface2 px-4 py-2 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all flex items-center justify-center gap-2">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              View Source
-            </button>
-          </div>
-
-          {/* More by author */}
-          <div className="rounded-xl border border-border bg-surface/50 p-5">
-            <h3 className="text-xs font-semibold text-text mb-3">
-              More by {game.author}
-            </h3>
-            <div className="space-y-2">
-              {games
-                .filter(
-                  (g) => g.author === game.author && g.slug !== game.slug,
-                )
-                .slice(0, 3)
-                .map((g) => (
-                  <Link
-                    key={g.slug}
-                    to={`/game/${g.slug}`}
-                    className="flex items-center gap-3 rounded-lg p-2 -mx-2 hover:bg-surface2 transition-colors"
-                  >
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ background: `${g.color}15` }}
-                    >
-                      <span
-                        className="text-sm font-bold font-mono opacity-40"
-                        style={{ color: g.color }}
-                      >
-                        {g.title[0]}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-text truncate">
-                        {g.title}
-                      </p>
-                      <p className="text-[10px] text-text-muted">
-                        {g.plays.toLocaleString()} plays
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-            </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-function InfoRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between text-xs">
       <span className="text-text-muted">{label}</span>
       <span className="text-text-dim font-medium">{value}</span>
     </div>
-  );
+  )
 }

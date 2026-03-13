@@ -1,20 +1,23 @@
 {
-  "name": "@cubeforgelabs/play",
-  "private": true,
+  "name": "@cubeforgelabs/editor",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
   "dependencies": {
     "@cubeforgelabs/auth": "workspace:*",
+    "@monaco-editor/react": "^4.6.0",
+    "monaco-editor": "^0.52.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "^7.0.0"
+    "react-router-dom": "^7.0.0",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
