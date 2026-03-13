@@ -31,7 +31,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    let initialized = false
+    // Eagerly resolve loading from current session — prevents stuck Loading…
+    // when onAuthStateChange doesn't fire (e.g. no session change on navigation)
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s)
+      if (s?.user) {
+        loadProfile(s.user.id).finally(() => setLoading(false))
+      } else {
+        setLoading(false)
+      }
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
@@ -39,9 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await loadProfile(s.user.id)
       } else {
         setProfile(null)
-      }
-      if (!initialized) {
-        initialized = true
         setLoading(false)
       }
     })

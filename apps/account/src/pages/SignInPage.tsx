@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { signInWithEmail, signInWithOAuth, getSupabaseClient } from '@cubeforgelabs/auth'
 import { ArrowLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 import { PhysicsBg } from '../components/PhysicsBg'
@@ -13,6 +13,8 @@ type View = 'signin' | 'forgot' | 'forgot-sent'
 
 export function SignInPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirect_to')
   const [view, setView] = useState<View>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,6 +29,7 @@ export function SignInPage() {
     const { error } = await signInWithEmail(email, password)
     setLoading(false)
     if (error) { setError(error.message); return }
+    if (redirectTo) { window.location.href = redirectTo; return }
     navigate('/')
   }
 
@@ -123,10 +126,10 @@ export function SignInPage() {
             <>
               <CardHeader className="px-6 pt-6 pb-5">
                 <div className="flex flex-col gap-3">
-                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('github')}>
+                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('github', redirectTo ?? undefined)}>
                     <GithubLogo /> Continue with GitHub
                   </Button>
-                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('google')}>
+                  <Button variant="outline" className="w-full py-3" onClick={() => signInWithOAuth('google', redirectTo ?? undefined)}>
                     <GoogleLogo /> Continue with Google
                   </Button>
                 </div>
@@ -193,7 +196,7 @@ export function SignInPage() {
 
                   <p className="text-center text-sm text-text-muted pt-1">
                     Don't have an account?{' '}
-                    <Link to="/signup" className="text-text underline hover:text-accent transition-colors">
+                    <Link to={redirectTo ? `/signup?redirect_to=${encodeURIComponent(redirectTo)}` : '/signup'} className="text-text underline hover:text-accent transition-colors">
                       Sign up
                     </Link>
                   </p>
