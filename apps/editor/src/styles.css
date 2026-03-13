@@ -93,6 +93,14 @@ input, textarea, select { user-select: text; }
 
 .toolbar-logo-mark svg { display: block; }
 
+.toolbar-logo-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .toolbar-logo-text {
   font-size: 11px;
   font-weight: 600;

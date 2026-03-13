@@ -230,14 +230,7 @@ export function App() {
       <div className="toolbar">
         {/* Logo */}
         <div className="toolbar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <div className="toolbar-logo-mark">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <rect x="1" y="1" width="4" height="4" fill="#0b0d14" />
-              <rect x="7" y="1" width="4" height="4" fill="#0b0d14" />
-              <rect x="1" y="7" width="4" height="4" fill="#0b0d14" />
-              <rect x="7" y="7" width="4" height="4" fill="#0b0d14" />
-            </svg>
-          </div>
+          <img src="/favicon-96x96.png" alt="CubeForge" className="toolbar-logo-img" />
           <span className="toolbar-logo-text">cube<span>forge</span></span>
         </div>
 
