@@ -7,13 +7,16 @@ import { GetStarted } from "./components/GetStarted";
 import { Footer } from "./components/Footer";
 import { PhysicsBgLoader } from "./components/PhysicsBgLoader";
 
+const SUPABASE_URL = 'https://omzeexpmpfsfecwlcmhq.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9temVleHBtcGZzZmVjd2xjbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODM1NjcsImV4cCI6MjA4ODk1OTU2N30.pJb1cRVNRaI_UuGDzVRKL-WjbU_ZOafkkxe6lIFxW5I'
+
 async function getFeaturedGames(): Promise<GameEntry[]> {
   try {
-    const url = `${process.env.VITE_SUPABASE_URL}/rest/v1/games?select=id,title,description,tags,thumbnail_url,slug&is_official=eq.true&order=plays.desc&limit=6`
+    const url = `${SUPABASE_URL}/rest/v1/games?select=id,title,description,tags,thumbnail_url,slug&is_official=eq.true&order=plays.desc&limit=6`
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.VITE_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.VITE_SUPABASE_ANON_KEY!}`,
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
       next: { revalidate: 3600 },
     })
