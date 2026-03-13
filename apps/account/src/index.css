@@ -65,8 +65,8 @@ body {
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
   font-family: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
