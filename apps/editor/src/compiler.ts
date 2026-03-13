@@ -113,7 +113,7 @@ export function buildIframeSrcdoc(compiledCode: string): string {
       'react-dom':         'https://esm.sh/react-dom@18',
       'react-dom/client':  'https://esm.sh/react-dom@18/client',
       'react/jsx-runtime': 'https://esm.sh/react@18/jsx-runtime',
-      'cubeforge':         'https://esm.sh/cubeforge@latest',
+      'cubeforge':         'https://esm.sh/cubeforge@latest?deps=react@18,react-dom@18',
     },
   })
 

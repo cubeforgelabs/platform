@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listProjects, deleteProject, createProject } from '../lib/projects'
+import { listProjects, deleteProject, createProject, syncLocalProjects } from '../lib/projects'
+import { localCount } from '../lib/localProjects'
 import { createEmptyDocument, type CsxDocument } from '../lib/csx'
 import { useAuth } from '../lib/auth-context'
 import { TEMPLATES } from '../templates'
@@ -11,10 +12,11 @@ interface ProjectItem {
   name: string
   updated_at: string
   thumbnail_url: string | null
+  local?: boolean
 }
 
 export function DashboardPage() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,12 +24,39 @@ export function DashboardPage() {
   const [newName, setNewName] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>('__blank__')
+  const [localCount_, setLocalCount] = useState(0)
+  const [syncing, setSyncing] = useState(false)
+  const [syncDone, setSyncDone] = useState(false)
+  const hasSynced = useRef(false)
 
-  useEffect(() => {
+  function reload() {
+    setLoading(true)
     listProjects()
       .then(p => { setProjects(p); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [])
+  }
+
+  // Load projects whenever auth settles
+  useEffect(() => {
+    if (authLoading) return
+    reload()
+  }, [authLoading, user?.id])
+
+  // Count local projects when signed in (to show sync banner)
+  useEffect(() => {
+    if (!user || hasSynced.current) return
+    localCount().then(setLocalCount)
+  }, [user])
+
+  async function handleSync() {
+    setSyncing(true)
+    await syncLocalProjects()
+    hasSynced.current = true
+    setSyncing(false)
+    setSyncDone(true)
+    setLocalCount(0)
+    reload()
+  }
 
   async function handleCreate() {
     if (!newName.trim()) return
@@ -52,8 +81,7 @@ export function DashboardPage() {
     setProjects(prev => prev.filter(p => p.id !== id))
   }
 
-  const displayName = profile?.display_name ?? profile?.username ?? user?.email?.split('@')[0] ?? 'there'
-  const initials = (profile?.display_name ?? profile?.username ?? user?.email ?? '?')[0].toUpperCase()
+  const displayName = profile?.display_name ?? profile?.username ?? user?.email?.split('@')[0] ?? null
 
   return (
     <div className="dashboard">
@@ -77,7 +105,7 @@ export function DashboardPage() {
 
         <div className="toolbar-divider" />
 
-        {user && (
+        {user ? (
           <UserMenu
             avatarUrl={profile?.avatar_url}
             displayName={profile?.display_name}
@@ -86,15 +114,36 @@ export function DashboardPage() {
             onSignOut={signOut}
             variant="toolbar"
           />
+        ) : (
+          <a
+            href="https://account.cubeforge.dev/signin"
+            className="dashboard-signin-btn"
+          >
+            Sign in
+          </a>
         )}
       </div>
+
+      {/* Sync banner — shown when signed in with pending local projects */}
+      {user && localCount_ > 0 && !syncDone && (
+        <div className="dashboard-sync-banner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>You have {localCount_} unsaved local project{localCount_ > 1 ? 's' : ''} from before you signed in.</span>
+          <button onClick={handleSync} disabled={syncing}>
+            {syncing ? 'Syncing…' : 'Save to account'}
+          </button>
+          <button className="dashboard-sync-dismiss" onClick={() => setLocalCount(0)}>Dismiss</button>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="dashboard-body">
         <div className="dashboard-header">
           <div>
-            <h1>Welcome back, {displayName}</h1>
-            <p>Your game projects</p>
+            <h1>{displayName ? `Welcome back, ${displayName}` : 'CubeForge Editor'}</h1>
+            <p>{user ? 'Your game projects' : 'Build browser games — no account required'}</p>
           </div>
           <button className="dashboard-new-btn" onClick={() => setShowNew(true)}>
             + New project
@@ -160,9 +209,13 @@ export function DashboardPage() {
           <div className="dashboard-loading">Loading projects…</div>
         ) : projects.length === 0 ? (
           <div className="dashboard-empty">
-            <div className="dashboard-empty-icon">🎮</div>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)', marginBottom: 8 }}>
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            </svg>
             <p>No projects yet</p>
-            <p className="dashboard-empty-sub">Create your first game to get started</p>
+            <p className="dashboard-empty-sub">
+              {user ? 'Create your first game to get started' : 'Projects are saved locally in your browser — sign in to sync them to your account'}
+            </p>
             <button className="dashboard-new-btn" onClick={() => setShowNew(true)}>Create project</button>
           </div>
         ) : (
@@ -184,7 +237,10 @@ export function DashboardPage() {
                 </div>
                 <div className="dashboard-card-info">
                   <p className="dashboard-card-name">{p.name}</p>
-                  <p className="dashboard-card-date">{formatDate(p.updated_at)}</p>
+                  <p className="dashboard-card-date">
+                    {p.local && <span className="dashboard-card-local">local</span>}
+                    {formatDate(p.updated_at)}
+                  </p>
                 </div>
                 <button
                   className="dashboard-card-delete"
