@@ -1,15 +1,29 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchGames, type GameListItem } from '../lib/api'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/auth-context'
 import { FeaturedBanner } from '../components/FeaturedBanner'
 import { GameCard } from '../components/GameCard'
 import { TagFilter } from '../components/TagFilter'
 import { SearchBar } from '../components/SearchBar'
 
+type SortKey = 'popular' | 'newest'
+
+type RecentGame = {
+  game_id: string
+  played_at: string
+  games: GameListItem | null
+}
+
 export function HomePage() {
+  const { user } = useAuth()
   const [games, setGames] = useState<GameListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [tag, setTag] = useState('All')
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<SortKey>('popular')
+  const [recentGames, setRecentGames] = useState<RecentGame[]>([])
 
   useEffect(() => {
     fetchGames().then((data) => {
@@ -18,29 +32,99 @@ export function HomePage() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(supabase as any)
+      .from('play_history')
+      .select('game_id, played_at, games(*)')
+      .eq('user_id', user.id)
+      .order('played_at', { ascending: false })
+      .limit(8)
+      .then(({ data }: { data: RecentGame[] | null }) => {
+        setRecentGames((data ?? []).filter((r) => r.games != null))
+      })
+  }, [user])
+
   const tags = useMemo(() => {
     const all = games.flatMap((g) => g.tags)
     return [...new Set(all)].sort()
   }, [games])
 
+  const isFiltering = !!search || tag !== 'All'
+
   const featured = games[0] ?? null
 
-  const filtered = games.filter((g) => {
-    const matchTag = tag === 'All' || g.tags.includes(tag)
-    const matchSearch =
-      !search ||
-      g.title.toLowerCase().includes(search.toLowerCase()) ||
-      g.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
-    return matchTag && matchSearch
-  })
+  const newReleases = useMemo(
+    () =>
+      [...games]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 8),
+    [games]
+  )
+
+  const filtered = games
+    .filter((g) => {
+      const matchTag = tag === 'All' || g.tags.includes(tag)
+      const matchSearch =
+        !search ||
+        g.title.toLowerCase().includes(search.toLowerCase()) ||
+        g.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+      return matchTag && matchSearch
+    })
+    .sort((a, b) =>
+      sort === 'newest'
+        ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        : b.plays - a.plays
+    )
 
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 md:py-10">
       {/* Featured */}
-      {featured && !search && tag === 'All' && (
+      {featured && !isFiltering && (
         <div className="mb-10">
           <FeaturedBanner game={featured} />
         </div>
+      )}
+
+      {/* Continue Playing — only for logged-in users with history */}
+      {!isFiltering && recentGames.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-text">Continue Playing</h2>
+            <a
+              href="https://account.cubeforge.dev/history"
+              className="text-xs text-text-muted hover:text-accent transition-colors"
+            >
+              View history →
+            </a>
+          </div>
+          <HorizontalScroll>
+            {recentGames.map((r) =>
+              r.games ? <MiniGameCard key={r.game_id} game={r.games} /> : null
+            )}
+          </HorizontalScroll>
+        </section>
+      )}
+
+      {/* New Releases */}
+      {!isFiltering && !loading && newReleases.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-text">New Releases</h2>
+            <Link
+              to="/browse"
+              className="text-xs text-text-muted hover:text-accent transition-colors"
+            >
+              See all →
+            </Link>
+          </div>
+          <HorizontalScroll>
+            {newReleases.map((game) => (
+              <MiniGameCard key={game.id} game={game} />
+            ))}
+          </HorizontalScroll>
+        </section>
       )}
 
       {/* Controls */}
@@ -48,8 +132,11 @@ export function HomePage() {
         <div className="flex-1 w-full md:w-auto max-w-[800px]">
           <TagFilter tags={tags} active={tag} onChange={setTag} />
         </div>
-        <div className="w-full md:w-72">
-          <SearchBar value={search} onChange={setSearch} />
+        <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+          <div className="flex-1 md:w-60">
+            <SearchBar value={search} onChange={setSearch} />
+          </div>
+          <SortToggle value={sort} onChange={setSort} />
         </div>
       </div>
 
@@ -103,15 +190,102 @@ export function HomePage() {
             Use the drag-and-drop editor or write code with the CubeForge engine. Publish here for everyone to play.
           </p>
           <div className="flex items-center gap-3">
-            <a href="https://editor.cubeforge.dev" className="rounded-xl bg-accent px-6 py-2.5 text-sm font-semibold text-bg hover:bg-accent2 transition-colors">
+            <a
+              href="https://editor.cubeforge.dev"
+              className="rounded-xl bg-accent px-6 py-2.5 text-sm font-semibold text-bg hover:bg-accent2 transition-colors"
+            >
               Open Editor
             </a>
-            <a href="https://docs.cubeforge.dev/guide/getting-started" className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-text-dim hover:text-text hover:border-border2 transition-all">
+            <a
+              href="https://docs.cubeforge.dev/guide/getting-started"
+              className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-text-dim hover:text-text hover:border-border2 transition-all"
+            >
               Read Docs
             </a>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function SortToggle({
+  value,
+  onChange,
+}: {
+  value: SortKey
+  onChange: (v: SortKey) => void
+}) {
+  return (
+    <div className="flex rounded-xl overflow-hidden shrink-0" style={{ border: '1px solid var(--border)' }}>
+      {(['popular', 'newest'] as const).map((key) => (
+        <button
+          key={key}
+          onClick={() => onChange(key)}
+          className="px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap"
+          style={
+            value === key
+              ? { background: 'var(--surface2)', color: 'var(--text)' }
+              : { background: 'var(--surface)', color: 'var(--text-muted)' }
+          }
+        >
+          {key === 'popular' ? '🔥 Popular' : '✨ Newest'}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function HorizontalScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:-mx-6 md:px-6"
+      style={{ scrollbarWidth: 'none' }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function MiniGameCard({ game }: { game: GameListItem }) {
+  return (
+    <Link
+      to={`/game/${game.id}`}
+      className="group flex-shrink-0 w-44 rounded-xl border border-border bg-surface/50 overflow-hidden hover:border-border2 hover:-translate-y-0.5 transition-all duration-200"
+    >
+      <div className="relative w-full aspect-[16/10] overflow-hidden bg-surface2">
+        {game.thumbnail_url ? (
+          <img
+            src={game.thumbnail_url}
+            alt={game.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className="text-3xl font-bold font-mono opacity-15"
+              style={{ color: 'var(--accent)' }}
+            >
+              {game.title[0]}
+            </span>
+          </div>
+        )}
+        <div className="absolute inset-0 flex items-center justify-center bg-bg/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--bg)" stroke="none">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div className="p-2.5">
+        <p className="text-xs font-medium text-text group-hover:text-accent transition-colors truncate">
+          {game.title}
+        </p>
+        <p className="text-[10px] text-text-muted mt-0.5 truncate">
+          {game.profiles?.display_name ?? game.profiles?.username ?? 'CubeForge'}
+        </p>
+      </div>
+    </Link>
   )
 }

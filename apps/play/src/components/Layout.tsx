@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { UserMenu } from '@cubeforgelabs/ui'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Layout() {
   const { pathname } = useLocation()
@@ -23,6 +24,7 @@ export function Layout() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <a href="https://editor.cubeforge.dev" className="text-xs text-text-dim hover:text-text transition-colors hidden sm:block">
               Make a Game
             </a>
