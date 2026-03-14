@@ -74,7 +74,7 @@ export function SessionsPage() {
   const hasOthers = sessions.some(s => s.session_key !== currentKey)
 
   return (
-    <div className="max-w-lg flex flex-col gap-5">
+    <div className="max-w-2xl flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text">Sessions</h1>

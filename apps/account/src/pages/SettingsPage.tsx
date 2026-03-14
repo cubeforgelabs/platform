@@ -127,7 +127,7 @@ export function SettingsPage() {
   const sectionStyle = { background: 'var(--surface)', border: '1px solid var(--border)' }
 
   return (
-    <div className="max-w-lg flex flex-col gap-6">
+    <div className="max-w-2xl flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold text-text">Settings</h1>
         <p className="text-xs text-text-muted mt-1">{user?.email}</p>

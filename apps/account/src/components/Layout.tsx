@@ -32,7 +32,7 @@ export function Layout() {
           backdropFilter: 'blur(16px)',
         }}
       >
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <a href="https://cubeforge.dev" className="flex items-center gap-2 group">
             <img src="/favicon-96x96.png" alt="CubeForge" width={22} height={22} style={{ borderRadius: 4 }} />
             <span className="text-sm font-semibold text-text tracking-tight group-hover:text-accent transition-colors">
@@ -53,7 +53,7 @@ export function Layout() {
         </div>
       </header>
 
-      <div className="flex flex-1 max-w-5xl mx-auto w-full px-4 py-8 gap-8">
+      <div className="flex flex-1 max-w-6xl mx-auto w-full px-4 py-8 gap-8">
         <nav className="w-40 shrink-0 flex flex-col gap-0.5 pt-1">
           {NAV.map(({ to, label, end }) => (
             <NavLink

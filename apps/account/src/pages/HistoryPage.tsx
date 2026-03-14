@@ -49,7 +49,7 @@ export function HistoryPage() {
   if (loading) return <div className="text-sm text-text-dim">Loading…</div>
 
   return (
-    <div className="max-w-lg flex flex-col gap-5">
+    <div className="max-w-2xl flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-text">Play History</h1>
