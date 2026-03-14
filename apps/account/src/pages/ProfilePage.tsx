@@ -1,11 +1,24 @@
 import { useAuth } from '../lib/auth-context'
 import { supabase } from '../lib/supabase'
-import { useRef, useState } from 'react'
-import { Camera, Check, Globe, Calendar, Loader2, Pencil, X } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { Camera, Check, Globe, Calendar, Loader2, Pencil, X, ExternalLink } from 'lucide-react'
 
 export function ProfilePage() {
   const { profile, user, refreshProfile } = useAuth()
   const [editing, setEditing] = useState(false)
+  const [stats, setStats] = useState({ plays: 0, followers: 0, following: 0 })
+
+  useEffect(() => {
+    if (!user) return
+    Promise.all([
+      supabase.from('games').select('plays').eq('author_id', user.id).not('bundle_path', 'is', null),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
+    ]).then(([gamesRes, followersRes, followingRes]) => {
+      const plays = (gamesRes.data ?? []).reduce((s, g) => s + (g.plays ?? 0), 0)
+      setStats({ plays, followers: followersRes.count ?? 0, following: followingRes.count ?? 0 })
+    })
+  }, [user])
   const [displayName, setDisplayName] = useState('')
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
@@ -137,12 +150,38 @@ export function ProfilePage() {
         </label>
 
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-text truncate">{name}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold text-text truncate">{name}</p>
+            <a
+              href={`https://play.cubeforge.dev/user/${profile.username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[10px] text-text-muted hover:text-accent transition-colors"
+            >
+              <ExternalLink size={10} /> Public profile
+            </a>
+          </div>
           <p className="text-xs text-text-muted mt-0.5">@{profile.username}</p>
           <p className="text-xs text-text-muted mt-0.5 truncate">{user?.email}</p>
           <div className="flex items-center gap-1 mt-2">
             <Calendar size={11} className="text-text-muted shrink-0" />
             <span className="text-xs text-text-muted">Member since {memberSince}</span>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 text-center">
+          <div>
+            <p className="text-lg font-bold text-text">{stats.plays.toLocaleString()}</p>
+            <p className="text-[10px] text-text-muted">Total plays</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-text">{stats.followers}</p>
+            <p className="text-[10px] text-text-muted">Followers</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-text">{stats.following}</p>
+            <p className="text-[10px] text-text-muted">Following</p>
           </div>
         </div>
       </div>

@@ -62,26 +62,20 @@ export function BrowsePage() {
         <p className="text-sm text-text-dim">Discover games built with CubeForge by the community</p>
       </div>
 
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex-1 w-full md:w-auto">
-            <TagFilter tags={tags} active={tag} onChange={updateTag} />
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-full md:w-64">
-              <SearchBar value={search} onChange={updateSearch} />
-            </div>
-            <select
-              value={sort}
-              onChange={(e) => updateSort(e.target.value as SortKey)}
-              className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-text-dim focus:outline-none focus:border-accent/40"
-            >
-              <option value="popular">Most Played</option>
-              <option value="newest">Newest</option>
-              <option value="top-rated">Top Rated</option>
-            </select>
-          </div>
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <TagFilter tags={tags} active={tag} onChange={updateTag} />
+        <div className="flex-1 min-w-[160px] max-w-xs">
+          <SearchBar value={search} onChange={updateSearch} />
         </div>
+        <select
+          value={sort}
+          onChange={(e) => updateSort(e.target.value as SortKey)}
+          className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-text-dim focus:outline-none focus:border-accent/40"
+        >
+          <option value="popular">Most Played</option>
+          <option value="newest">Newest</option>
+          <option value="top-rated">Top Rated</option>
+        </select>
       </div>
 
       <div className="flex items-center justify-between mb-4">

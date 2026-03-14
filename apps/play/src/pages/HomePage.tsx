@@ -24,6 +24,7 @@ export function HomePage() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortKey>('popular')
   const [recentGames, setRecentGames] = useState<RecentGame[]>([])
+  const [followingGames, setFollowingGames] = useState<GameListItem[]>([])
 
   useEffect(() => {
     fetchGames().then((data) => {
@@ -43,6 +44,36 @@ export function HomePage() {
       .limit(8)
       .then(({ data }: { data: RecentGame[] | null }) => {
         setRecentGames((data ?? []).filter((r) => r.games != null))
+      })
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return
+        const ids = data.map((f) => f.following_id)
+        supabase
+          .from('games')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .select('*, profiles!games_author_id_fkey(username, display_name, avatar_url), reviews(rating)' as any)
+          .in('author_id', ids)
+          .not('bundle_path', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(8)
+          .then(({ data: gData }) => {
+            if (!gData) return
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rows = (gData as any[]).map((g) => {
+              const reviews = (g.reviews as { rating: number }[]) ?? []
+              const avg = reviews.length ? reviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / reviews.length : null
+              return { ...g, avg_rating: avg, review_count: reviews.length }
+            })
+            setFollowingGames(rows as unknown as GameListItem[])
+          })
       })
   }, [user])
 
@@ -107,6 +138,23 @@ export function HomePage() {
         </section>
       )}
 
+      {/* From people you follow */}
+      {!isFiltering && followingGames.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-text">From people you follow</h2>
+            <Link to="/browse" className="text-xs text-text-muted hover:text-accent transition-colors">
+              Browse all →
+            </Link>
+          </div>
+          <HorizontalScroll>
+            {followingGames.map((game) => (
+              <MiniGameCard key={game.id} game={game} />
+            ))}
+          </HorizontalScroll>
+        </section>
+      )}
+
       {/* New Releases */}
       {!isFiltering && !loading && newReleases.length > 0 && (
         <section className="mb-10">
@@ -128,16 +176,12 @@ export function HomePage() {
       )}
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <div className="flex-1 w-full md:w-auto max-w-[800px]">
-          <TagFilter tags={tags} active={tag} onChange={setTag} />
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <TagFilter tags={tags} active={tag} onChange={setTag} />
+        <div className="flex-1 min-w-[160px] max-w-xs">
+          <SearchBar value={search} onChange={setSearch} />
         </div>
-        <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-          <div className="flex-1 md:w-60">
-            <SearchBar value={search} onChange={setSearch} />
-          </div>
-          <SortToggle value={sort} onChange={setSort} />
-        </div>
+        <SortToggle value={sort} onChange={setSort} />
       </div>
 
       {/* Section header */}
