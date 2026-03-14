@@ -65,7 +65,15 @@ export function DashboardPage() {
       let doc: CsxDocument = createEmptyDocument(newName.trim())
       if (selectedTemplate !== '__blank__') {
         const tpl = TEMPLATES.find(t => t.id === selectedTemplate)
-        if (tpl) doc = { ...doc, files: tpl.files }
+        if (tpl) {
+          doc = {
+            ...doc,
+            entities: tpl.entities,
+            files: tpl.files ?? [],
+            game: { ...doc.game, ...tpl.game },
+            world: { ...doc.world, ...tpl.world },
+          }
+        }
       }
       const id = await createProject(newName.trim(), doc)
       if (id) navigate(`/project/${id}`)
