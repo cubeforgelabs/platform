@@ -6,10 +6,8 @@ import { Eye, EyeOff } from 'lucide-react'
 
 function getProvider(user: ReturnType<typeof useAuth>['user']) {
   if (!user) return null
-  // Supabase stores the primary provider in app_metadata
   const provider = user.app_metadata?.provider as string | undefined
   if (provider && provider !== 'email') return provider
-  // Fallback: check identities
   const identity = user.identities?.find(i => i.provider !== 'email')
   return identity?.provider ?? null
 }
@@ -22,6 +20,8 @@ const PROVIDER_LABELS: Record<string, string> = {
 export function SettingsPage() {
   const { user, signOut, profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
+
+  // Password
   const [password, setPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -29,6 +29,14 @@ export function SettingsPage() {
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // Email change
+  const [newEmail, setNewEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailSaving, setEmailSaving] = useState(false)
+
+  // Privacy
   const [isPublic, setIsPublic] = useState(true)
   const [showFavorites, setShowFavorites] = useState(true)
   const [privacySaving, setPrivacySaving] = useState(false)
@@ -67,11 +75,28 @@ export function SettingsPage() {
     setTimeout(() => setPwSuccess(false), 4000)
   }
 
+  async function handleEmailChange(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newEmail || newEmail === user?.email) {
+      setEmailError('Enter a different email address')
+      return
+    }
+    setEmailSaving(true)
+    setEmailError('')
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    setEmailSaving(false)
+    if (error) { setEmailError(error.message); return }
+    setEmailSent(true)
+    setNewEmail('')
+  }
+
   async function handleDeleteAccount() {
     if (!window.confirm('This will permanently delete your account and all your games. Are you sure?')) return
     await signOut()
     navigate('/signin')
   }
+
+  const sectionStyle = { background: 'var(--surface)', border: '1px solid var(--border)' }
 
   return (
     <div className="max-w-lg flex flex-col gap-6">
@@ -80,25 +105,20 @@ export function SettingsPage() {
         <p className="text-xs text-text-muted mt-1">{user?.email}</p>
       </div>
 
-      {/* Connected account / Password section */}
-      <section
-        className="rounded-2xl flex flex-col gap-4 p-5"
-        style={{ background: '#13151f', border: '1px solid #1f2435' }}
-      >
+      {/* Connected account / Password */}
+      <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
         {oauthProvider ? (
           <>
             <h2 className="text-sm font-semibold text-text">Connected account</h2>
             <div className="flex items-center gap-3">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid #1f2435' }}
+                style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}
               >
                 {oauthProvider === 'github' ? <GithubIcon /> : <GoogleIcon />}
               </div>
               <div>
-                <p className="text-sm text-text">
-                  Signed in with {PROVIDER_LABELS[oauthProvider] ?? oauthProvider}
-                </p>
+                <p className="text-sm text-text">Signed in with {PROVIDER_LABELS[oauthProvider] ?? oauthProvider}</p>
                 <p className="text-xs text-text-muted mt-0.5">
                   Your password is managed by {PROVIDER_LABELS[oauthProvider] ?? oauthProvider}.
                   To change it, visit your {PROVIDER_LABELS[oauthProvider] ?? oauthProvider} account settings.
@@ -141,13 +161,13 @@ export function SettingsPage() {
                   {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-              {pwError && <p className="text-xs" style={{ color: '#f38ba8' }}>{pwError}</p>}
-              {pwSuccess && <p className="text-xs" style={{ color: '#a6e3a1' }}>Password updated successfully.</p>}
+              {pwError && <p className="text-xs" style={{ color: 'var(--error)' }}>{pwError}</p>}
+              {pwSuccess && <p className="text-xs" style={{ color: 'var(--ok)' }}>Password updated successfully.</p>}
               <button
                 type="submit"
                 disabled={saving}
                 className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
-                style={{ background: '#4fc3f7' }}
+                style={{ background: 'var(--accent)' }}
               >
                 {saving ? 'Saving…' : 'Update password'}
               </button>
@@ -156,11 +176,39 @@ export function SettingsPage() {
         )}
       </section>
 
+      {/* Email address */}
+      <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
+        <h2 className="text-sm font-semibold text-text">Email address</h2>
+        <p className="text-xs text-text-muted -mt-2">Current: <span className="text-text-dim">{user?.email}</span></p>
+        {emailSent ? (
+          <p className="text-xs" style={{ color: 'var(--ok)' }}>
+            Confirmation sent to <strong>{newEmail || 'your new email'}</strong>. Click the link there to complete the change.
+          </p>
+        ) : (
+          <form onSubmit={handleEmailChange} className="flex flex-col gap-3">
+            <input
+              type="email"
+              placeholder="New email address"
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+              required
+              className="inner-input"
+            />
+            {emailError && <p className="text-xs" style={{ color: 'var(--error)' }}>{emailError}</p>}
+            <button
+              type="submit"
+              disabled={emailSaving}
+              className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+              style={{ background: 'var(--accent)' }}
+            >
+              {emailSaving ? 'Sending…' : 'Change email'}
+            </button>
+          </form>
+        )}
+      </section>
+
       {/* Privacy */}
-      <section
-        className="rounded-2xl flex flex-col gap-4 p-5"
-        style={{ background: '#13151f', border: '1px solid #1f2435' }}
-      >
+      <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
         <h2 className="text-sm font-semibold text-text">Privacy</h2>
         <ToggleRow
           label="Public profile"
@@ -179,26 +227,26 @@ export function SettingsPage() {
             onClick={savePrivacy}
             disabled={privacySaving}
             className="rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
-            style={{ background: '#4fc3f7' }}
+            style={{ background: 'var(--accent)' }}
           >
             {privacySaving ? 'Saving…' : 'Save privacy'}
           </button>
-          {privacySaved && <span className="text-xs" style={{ color: '#a6e3a1' }}>Saved</span>}
+          {privacySaved && <span className="text-xs" style={{ color: 'var(--ok)' }}>Saved</span>}
         </div>
       </section>
 
       {/* Danger zone */}
       <section
         className="rounded-2xl p-5 flex flex-col gap-3"
-        style={{ border: '1px solid rgba(243,139,168,0.2)' }}
+        style={{ border: '1px solid color-mix(in srgb, var(--error) 30%, transparent)' }}
       >
-        <h2 className="text-sm font-semibold" style={{ color: '#f38ba8' }}>Danger zone</h2>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--error)' }}>Danger zone</h2>
         <p className="text-xs text-text-dim">Deleting your account is permanent and cannot be undone.</p>
         <button
           onClick={handleDeleteAccount}
           className="self-start rounded-xl px-5 py-2 text-sm transition-colors"
-          style={{ color: '#f38ba8', border: '1px solid rgba(243,139,168,0.25)' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(243,139,168,0.08)')}
+          style={{ color: 'var(--error)', border: '1px solid color-mix(in srgb, var(--error) 25%, transparent)' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, var(--error) 8%, transparent)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           Delete account
@@ -221,11 +269,9 @@ function ToggleRow({ label, description, checked, onChange }: {
         type="button"
         onClick={() => onChange(!checked)}
         className={`relative shrink-0 w-10 h-5 rounded-full transition-colors mt-0.5 overflow-hidden ${checked ? 'bg-accent' : 'bg-surface2'}`}
-        style={{ border: '1px solid #1f2435' }}
+        style={{ border: '1px solid var(--border)' }}
       >
-        <span
-          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`}
-        />
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
       </button>
     </div>
   )
@@ -233,7 +279,7 @@ function ToggleRow({ label, description, checked, onChange }: {
 
 function GithubIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="#cdd6f4">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-text">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12" />
     </svg>
   )

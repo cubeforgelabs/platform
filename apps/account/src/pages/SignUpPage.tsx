@@ -34,9 +34,9 @@ export function SignUpPage() {
         <div className="text-center max-w-sm relative z-10 fade-up">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-            style={{ background: 'rgba(166,227,161,0.1)', border: '1px solid rgba(166,227,161,0.2)' }}
+            style={{ background: 'color-mix(in srgb, var(--ok) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--ok) 20%, transparent)' }}
           >
-            <Check size={24} color="#a6e3a1" strokeWidth={2.5} />
+            <Check size={24} color="var(--ok)" strokeWidth={2.5} />
           </div>
           <h2 className="text-2xl font-semibold text-text mb-2">Check your email</h2>
           <p className="text-sm text-text-dim leading-relaxed">
@@ -126,7 +126,7 @@ export function SignUpPage() {
                 </div>
               </div>
 
-              {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
+              {error && <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
 
               <Button type="submit" className="w-full mt-1" disabled={loading}>
                 {loading && <Loader2 size={15} className="animate-spin" />}

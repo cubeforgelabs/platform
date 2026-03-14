@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { UserMenu } from '@cubeforgelabs/ui'
+import { ThemeToggle } from './ThemeToggle'
 
 const NAV = [
   { to: '/', label: 'Profile', end: true },
@@ -22,8 +23,8 @@ export function Layout() {
       <header
         className="sticky top-0 z-10"
         style={{
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          background: 'rgba(11,13,20,0.85)',
+          borderBottom: '1px solid var(--border)',
+          background: 'color-mix(in srgb, var(--bg) 85%, transparent)',
           backdropFilter: 'blur(16px)',
         }}
       >
@@ -34,14 +35,17 @@ export function Layout() {
               CubeForge
             </span>
           </a>
-          <UserMenu
-            avatarUrl={profile?.avatar_url}
-            displayName={profile?.display_name}
-            username={profile?.username}
-            onSignOut={handleSignOut}
-            variant="navbar"
-            showAccountLink={false}
-          />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <UserMenu
+              avatarUrl={profile?.avatar_url}
+              displayName={profile?.display_name}
+              username={profile?.username}
+              onSignOut={handleSignOut}
+              variant="navbar"
+              showAccountLink={false}
+            />
+          </div>
         </div>
       </header>
 
@@ -60,7 +64,7 @@ export function Layout() {
                 }`
               }
               style={({ isActive }) => isActive ? {
-                background: 'rgba(255,255,255,0.06)',
+                background: 'var(--surface2)',
               } : {}}
             >
               {label}

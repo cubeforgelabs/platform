@@ -32,7 +32,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, style, ...props }, ref) => {
     const base = variant === 'outline'
-      ? { background: 'rgba(255,255,255,0.04)', borderColor: '#1f2435', ...style }
+      ? { background: 'var(--surface2)', borderColor: 'var(--border)', ...style }
       : style
 
     return (

@@ -73,9 +73,9 @@ export function SignInPage() {
             <CardContent className="px-6 py-8 flex flex-col items-center gap-4 text-center">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)' }}
+                style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)' }}
               >
-                <Mail size={20} color="#4fc3f7" />
+                <Mail size={20} color="var(--accent)" />
               </div>
               <p className="text-sm text-text-dim leading-relaxed">
                 We sent a reset link to <span className="text-text font-medium">{email}</span>.
@@ -106,7 +106,7 @@ export function SignInPage() {
                     autoFocus
                   />
                 </div>
-                {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
+                {error && <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 size={15} className="animate-spin" />}
                   {loading ? 'Sending…' : 'Send reset link'}
@@ -187,7 +187,7 @@ export function SignInPage() {
                     </div>
                   </div>
 
-                  {error && <p className="text-sm" style={{ color: '#f38ba8' }}>{error}</p>}
+                  {error && <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>}
 
                   <Button type="submit" className="w-full mt-1" disabled={loading}>
                     {loading && <Loader2 size={15} className="animate-spin" />}
