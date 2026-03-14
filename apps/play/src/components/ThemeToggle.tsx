@@ -1,15 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export function ThemeToggle() {
-  const [dark, setDark] = useState(true)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('cf-theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const isDark = saved ? saved === 'dark' : prefersDark
-    setDark(isDark)
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
-  }, [])
+  const [dark, setDark] = useState(
+    () => document.documentElement.getAttribute('data-theme') !== 'light'
+  )
 
   function toggle() {
     const next = !dark

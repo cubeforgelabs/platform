@@ -380,7 +380,7 @@ export function GamePage() {
               onClick={toggleFavorite}
               className={`w-full rounded-lg border px-4 py-2 text-xs font-medium transition-all flex items-center justify-center gap-2 ${
                 isFavorited
-                  ? 'border-red/30 bg-red/10 text-red'
+                  ? 'border-error/30 bg-error/10 text-error'
                   : 'border-border bg-surface2 text-text-dim hover:text-text hover:border-border2'
               }`}
             >

@@ -4,18 +4,12 @@ import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const isDark = saved !== null ? saved === "dark" : prefersDark;
+    setMounted(true);
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
     setDark(isDark);
-    document.documentElement.setAttribute(
-      "data-theme",
-      isDark ? "dark" : "light"
-    );
   }, []);
 
   function toggle() {
@@ -23,8 +17,10 @@ export function ThemeToggle() {
     setDark(isDark);
     const theme = isDark ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    localStorage.setItem("cf-theme", theme);
   }
+
+  if (!mounted) return <div className="w-[66px] h-5" />;
 
   return (
     <button

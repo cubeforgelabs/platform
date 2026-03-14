@@ -8,20 +8,15 @@ export function TagFilter({
   onChange: (tag: string) => void
 }) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-      {['All', ...tags].map((tag) => (
-        <button
-          key={tag}
-          onClick={() => onChange(tag)}
-          className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all ${
-            active === tag
-              ? 'bg-accent text-bg'
-              : 'bg-surface border border-border text-text-dim hover:text-text hover:border-border2'
-          }`}
-        >
-          {tag === 'All' ? 'All Games' : tag}
-        </button>
+    <select
+      value={active}
+      onChange={(e) => onChange(e.target.value)}
+      className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-text-dim focus:outline-none focus:border-accent/40 min-w-[140px]"
+    >
+      <option value="All">All Games</option>
+      {tags.map((tag) => (
+        <option key={tag} value={tag}>{tag}</option>
       ))}
-    </div>
+    </select>
   )
 }
