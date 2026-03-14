@@ -69,7 +69,7 @@ export function Layout() {
   )
 }
 
-function NavLink({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) {
+function NavLink({ to, active, children }: { to: string; active: boolean; children: string }) {
   return (
     <Link
       to={to}

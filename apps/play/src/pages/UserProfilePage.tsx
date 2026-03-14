@@ -54,7 +54,7 @@ export function UserProfilePage() {
       // Games they uploaded
       supabase
         .from('games')
-        .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
+        .select('*, profiles!games_author_id_fkey(username, display_name, avatar_url)')
         .eq('author_id', p.id)
         .not('bundle_path', 'is', null)
         .order('plays', { ascending: false })
@@ -64,7 +64,7 @@ export function UserProfilePage() {
       p.show_favorites
         ? supabase
             .from('favorites')
-            .select('game_id, games(*, profiles!games_creator_id_fkey(username, display_name, avatar_url))')
+            .select('game_id, games(*, profiles!games_author_id_fkey(username, display_name, avatar_url))')
             .eq('user_id', p.id)
             .then(({ data }) => {
               const favGames = (data ?? []).map((f: any) => f.games).filter(Boolean)

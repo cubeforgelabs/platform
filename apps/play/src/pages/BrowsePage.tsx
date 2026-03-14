@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchGames, type GameListItem } from '../lib/api'
 import { GameCard } from '../components/GameCard'
 import { TagFilter } from '../components/TagFilter'
@@ -7,11 +8,25 @@ import { SearchBar } from '../components/SearchBar'
 type SortKey = 'popular' | 'newest' | 'top-rated'
 
 export function BrowsePage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [games, setGames] = useState<GameListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [tag, setTag] = useState('All')
-  const [search, setSearch] = useState('')
-  const [sort, setSort] = useState<SortKey>('popular')
+  const [tag, setTag] = useState(() => searchParams.get('tag') ?? 'All')
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
+  const [sort, setSort] = useState<SortKey>(() => (searchParams.get('sort') as SortKey) ?? 'popular')
+
+  function updateTag(t: string) {
+    setTag(t)
+    setSearchParams(p => { t === 'All' ? p.delete('tag') : p.set('tag', t); return p }, { replace: true })
+  }
+  function updateSort(s: SortKey) {
+    setSort(s)
+    setSearchParams(p => { s === 'popular' ? p.delete('sort') : p.set('sort', s); return p }, { replace: true })
+  }
+  function updateSearch(s: string) {
+    setSearch(s)
+    setSearchParams(p => { s ? p.set('search', s) : p.delete('search'); return p }, { replace: true })
+  }
 
   useEffect(() => {
     fetchGames().then((data) => {
@@ -50,15 +65,15 @@ export function BrowsePage() {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex-1 w-full md:w-auto">
-            <TagFilter tags={tags} active={tag} onChange={setTag} />
+            <TagFilter tags={tags} active={tag} onChange={updateTag} />
           </div>
           <div className="flex items-center gap-3">
             <div className="w-full md:w-64">
-              <SearchBar value={search} onChange={setSearch} />
+              <SearchBar value={search} onChange={updateSearch} />
             </div>
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
+              onChange={(e) => updateSort(e.target.value as SortKey)}
               className="rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-text-dim focus:outline-none focus:border-accent/40"
             >
               <option value="popular">Most Played</option>
