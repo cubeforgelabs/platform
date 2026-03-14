@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage'
 import { GamePage } from './pages/GamePage'
 import { BrowsePage } from './pages/BrowsePage'
 import { UserProfilePage } from './pages/UserProfilePage'
+import { EmbedPage } from './pages/EmbedPage'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -14,6 +15,8 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Embed route — no Layout wrapper, fullscreen */}
+          <Route path="/game/:id/embed" element={<EmbedPage />} />
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/browse" element={<BrowsePage />} />
