@@ -4,7 +4,7 @@ import { GameCard } from '../components/GameCard'
 import { TagFilter } from '../components/TagFilter'
 import { SearchBar } from '../components/SearchBar'
 
-type SortKey = 'popular' | 'newest'
+type SortKey = 'popular' | 'newest' | 'top-rated'
 
 export function BrowsePage() {
   const [games, setGames] = useState<GameListItem[]>([])
@@ -36,6 +36,7 @@ export function BrowsePage() {
     })
     .sort((a, b) => {
       if (sort === 'popular') return b.plays - a.plays
+      if (sort === 'top-rated') return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
 
@@ -62,6 +63,7 @@ export function BrowsePage() {
             >
               <option value="popular">Most Played</option>
               <option value="newest">Newest</option>
+              <option value="top-rated">Top Rated</option>
             </select>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase, gameBundleUrl } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
 import type { Tables } from '@cubeforgelabs/auth'
+import type { GameListItem } from '../lib/api'
 
 type Game = Tables<'games'> & {
   profiles: Pick<Tables<'profiles'>, 'username' | 'display_name' | 'avatar_url'>
@@ -28,6 +29,8 @@ export function GamePage() {
   const [reviewBody, setReviewBody] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
   const [submitting, setSubmitting] = useState(false)
+  const [moreByAuthor, setMoreByAuthor] = useState<GameListItem[]>([])
+  const [similarGames, setSimilarGames] = useState<GameListItem[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -37,7 +40,7 @@ export function GamePage() {
     Promise.all([
       supabase
         .from('games')
-        .select('*, profiles!games_creator_id_fkey(username, display_name, avatar_url)')
+        .select('*, profiles!games_author_id_fkey(username, display_name, avatar_url)')
         .eq('id', id)
         .single(),
       supabase
@@ -55,6 +58,42 @@ export function GamePage() {
       setLoading(false)
     })
   }, [id])
+
+  useEffect(() => {
+    if (!game) return
+    // OG / page title
+    document.title = `${game.title} — CubeForge Play`
+    const setMeta = (prop: string, val: string) => {
+      let el = document.querySelector(`meta[property="${prop}"]`)
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el) }
+      el.setAttribute('content', val)
+    }
+    setMeta('og:title', game.title)
+    setMeta('og:description', game.description ?? 'Play this game on CubeForge')
+    setMeta('og:image', game.thumbnail_url ?? '')
+    setMeta('og:url', window.location.href)
+    setMeta('og:type', 'website')
+    return () => { document.title = 'CubeForge Play' }
+  }, [game])
+
+  useEffect(() => {
+    if (!game || !id) return
+    const select = '*, profiles!games_author_id_fkey(username, display_name, avatar_url)'
+    Promise.all([
+      game.author_id
+        ? supabase.from('games').select(select).eq('author_id', game.author_id).neq('id', id)
+            .not('bundle_path', 'is', null).order('plays', { ascending: false }).limit(4)
+        : Promise.resolve({ data: [] }),
+      game.tags.length
+        ? supabase.from('games').select(select).overlaps('tags', game.tags).neq('id', id)
+            .not('bundle_path', 'is', null).order('plays', { ascending: false }).limit(6)
+        : Promise.resolve({ data: [] }),
+    ]).then(([authorRes, similarRes]) => {
+      setMoreByAuthor((authorRes.data as unknown as GameListItem[]) ?? [])
+      const authorIds = new Set(((authorRes.data ?? []) as { id: string }[]).map(g => g.id))
+      setSimilarGames(((similarRes.data as unknown as GameListItem[]) ?? []).filter(g => !authorIds.has(g.id)))
+    })
+  }, [game, id])
 
   useEffect(() => {
     if (!user || !id) return
@@ -364,7 +403,68 @@ export function GamePage() {
           </div>
         </div>
       </div>
+
+      {/* More by author */}
+      {moreByAuthor.length > 0 && author?.username && (
+        <section className="mt-10">
+          <h2 className="text-sm font-semibold text-text mb-4">
+            More by{' '}
+            <Link to={`/user/${author.username}`} className="text-accent hover:underline">
+              {author.display_name ?? author.username}
+            </Link>
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {moreByAuthor.map(g => <RelatedGameCard key={g.id} game={g} />)}
+          </div>
+        </section>
+      )}
+
+      {/* You might also like */}
+      {similarGames.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold text-text mb-4">You might also like</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {similarGames.slice(0, 6).map(g => <RelatedGameCard key={g.id} game={g} />)}
+          </div>
+        </section>
+      )}
     </div>
+  )
+}
+
+function RelatedGameCard({ game }: { game: GameListItem }) {
+  return (
+    <Link
+      to={`/game/${game.id}`}
+      className="group rounded-xl border border-border bg-surface/50 overflow-hidden hover:border-border2 hover:-translate-y-0.5 transition-all duration-200"
+    >
+      <div className="relative w-full aspect-[16/10] overflow-hidden bg-surface2">
+        {game.thumbnail_url ? (
+          <img src={game.thumbnail_url} alt={game.title} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-bold font-mono opacity-15" style={{ color: 'var(--accent)' }}>
+              {game.title[0]}
+            </span>
+          </div>
+        )}
+        <div className="absolute inset-0 flex items-center justify-center bg-bg/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--bg)" stroke="none">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div className="p-2.5">
+        <p className="text-xs font-medium text-text group-hover:text-accent transition-colors truncate">{game.title}</p>
+        {game.profiles?.username && (
+          <p className="text-[10px] text-text-muted mt-0.5 truncate">
+            {game.profiles.display_name ?? game.profiles.username}
+          </p>
+        )}
+      </div>
+    </Link>
   )
 }
 

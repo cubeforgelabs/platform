@@ -50,7 +50,7 @@ export type Database = {
           thumbnail_url?: string | null; title?: string
         }
         Relationships: [
-          { foreignKeyName: "games_creator_id_fkey"; columns: ["author_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "games_author_id_fkey"; columns: ["author_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ]
       }
       profiles: {

@@ -62,12 +62,19 @@ export function GameCard({ game }: { game: GameListItem }) {
         ) : (
           <p className="text-xs text-text-muted mb-2 truncate">CubeForge</p>
         )}
-        <div className="flex flex-wrap gap-1">
-          {game.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="text-[10px] font-mono text-text-muted border border-border rounded px-1.5 py-0.5">
-              {tag}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-1 min-w-0">
+            {game.tags.slice(0, 2).map((tag) => (
+              <span key={tag} className="text-[10px] font-mono text-text-muted border border-border rounded px-1.5 py-0.5 truncate">
+                {tag}
+              </span>
+            ))}
+          </div>
+          {game.avg_rating !== null && (
+            <span className="text-[10px] font-medium shrink-0 flex items-center gap-0.5" style={{ color: '#facc15' }}>
+              ★ <span className="text-text-muted" style={{ color: 'var(--text-muted)' }}>{game.avg_rating.toFixed(1)}</span>
             </span>
-          ))}
+          )}
         </div>
       </div>
     </Link>
