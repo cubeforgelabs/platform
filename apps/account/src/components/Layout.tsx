@@ -6,6 +6,10 @@ import { ThemeToggle } from './ThemeToggle'
 const NAV = [
   { to: '/', label: 'Profile', end: true },
   { to: '/games', label: 'My Games' },
+  { to: '/history', label: 'History' },
+  { to: '/reviews', label: 'Reviews' },
+  { to: '/follows', label: 'Following' },
+  { to: '/sessions', label: 'Sessions' },
   { to: '/settings', label: 'Settings' },
 ]
 

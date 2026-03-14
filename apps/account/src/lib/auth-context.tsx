@@ -21,6 +21,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  function getOrCreateSessionKey(): string {
+    try {
+      let key = localStorage.getItem('cf-session-key')
+      if (!key) {
+        key = crypto.randomUUID()
+        localStorage.setItem('cf-session-key', key)
+      }
+      return key
+    } catch {
+      return 'unknown'
+    }
+  }
+
+  async function trackSession(userId: string) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from('user_sessions').upsert(
+        {
+          user_id: userId,
+          session_key: getOrCreateSessionKey(),
+          user_agent: navigator.userAgent,
+          last_seen: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,session_key' }
+      )
+    } catch {
+      // non-critical
+    }
+  }
+
   async function loadProfile(userId: string) {
     try {
       const queryPromise = supabase.from('profiles').select('*').eq('id', userId).single()
@@ -59,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_IN') return
       if (s?.user) {
         await loadProfile(s.user.id)
+        trackSession(s.user.id)
       } else {
         setProfile(null)
       }

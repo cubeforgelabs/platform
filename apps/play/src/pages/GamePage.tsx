@@ -117,6 +117,13 @@ export function GamePage() {
 
   async function startPlaying() {
     if (!game!.bundle_path) return
+    if (user) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(supabase as any).from('play_history').upsert(
+        { user_id: user.id, game_id: id!, played_at: new Date().toISOString() },
+        { onConflict: 'user_id,game_id' }
+      )
+    }
     const { data } = await supabase.storage.from('games').download(game!.bundle_path)
     if (data) {
       const slug = game!.bundle_path.split('/')[0]

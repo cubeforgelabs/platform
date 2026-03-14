@@ -36,6 +36,9 @@ export function SettingsPage() {
   const [emailSent, setEmailSent] = useState(false)
   const [emailSaving, setEmailSaving] = useState(false)
 
+  // Export
+  const [exporting, setExporting] = useState(false)
+
   // Privacy
   const [isPublic, setIsPublic] = useState(true)
   const [showFavorites, setShowFavorites] = useState(true)
@@ -88,6 +91,31 @@ export function SettingsPage() {
     if (error) { setEmailError(error.message); return }
     setEmailSent(true)
     setNewEmail('')
+  }
+
+  async function handleExport() {
+    if (!user) return
+    setExporting(true)
+    const [profileRes, reviewsRes, historyRes] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('reviews').select('*, games(title)').eq('user_id', user.id),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from('play_history').select('game_id, played_at, games(title)').eq('user_id', user.id),
+    ])
+    const payload = {
+      exported_at: new Date().toISOString(),
+      profile: profileRes.data,
+      reviews: reviewsRes.data ?? [],
+      play_history: historyRes.data ?? [],
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cubeforge-data-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    setExporting(false)
   }
 
   async function handleDeleteAccount() {
@@ -233,6 +261,22 @@ export function SettingsPage() {
           </button>
           {privacySaved && <span className="text-xs" style={{ color: 'var(--ok)' }}>Saved</span>}
         </div>
+      </section>
+
+      {/* Export data */}
+      <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
+        <h2 className="text-sm font-semibold text-text">Export my data</h2>
+        <p className="text-xs text-text-muted -mt-2">
+          Download a copy of your profile, reviews, and play history as JSON.
+        </p>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+          style={{ background: 'var(--accent)' }}
+        >
+          {exporting ? 'Preparing…' : 'Download data'}
+        </button>
       </section>
 
       {/* Danger zone */}

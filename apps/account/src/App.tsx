@@ -7,6 +7,10 @@ import { ProfilePage } from './pages/ProfilePage'
 import { MyGamesPage } from './pages/MyGamesPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SetupUsernamePage } from './pages/SetupUsernamePage'
+import { HistoryPage } from './pages/HistoryPage'
+import { SessionsPage } from './pages/SessionsPage'
+import { ReviewsPage } from './pages/ReviewsPage'
+import { FollowsPage } from './pages/FollowsPage'
 import { Layout } from './components/Layout'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -40,6 +44,10 @@ export function App() {
       >
         <Route index element={<ProfilePage />} />
         <Route path="games" element={<MyGamesPage />} />
+        <Route path="history" element={<HistoryPage />} />
+        <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="follows" element={<FollowsPage />} />
+        <Route path="sessions" element={<SessionsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
