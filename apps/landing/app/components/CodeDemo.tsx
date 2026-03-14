@@ -100,22 +100,22 @@ function Line({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 function Kw({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#cba6f7]">{children}</span>;
+  return <span className="text-syntax-kw">{children}</span>;
 }
 function Fn({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#89b4fa]">{children}</span>;
+  return <span className="text-syntax-fn">{children}</span>;
 }
 function Tag({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#f38ba8]">{children}</span>;
+  return <span className="text-syntax-tag">{children}</span>;
 }
 function Attr({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#fab387]">{children}</span>;
+  return <span className="text-syntax-attr">{children}</span>;
 }
 function Str({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#a6e3a1]">{children}</span>;
+  return <span className="text-syntax-str">{children}</span>;
 }
 function Prop({ children }: { children: React.ReactNode }) {
-  return <span className="text-[#fab387]">{children}</span>;
+  return <span className="text-syntax-attr">{children}</span>;
 }
 
 function AnnotationCard({

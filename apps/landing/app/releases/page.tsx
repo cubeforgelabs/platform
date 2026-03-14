@@ -68,8 +68,8 @@ export default function ReleasesPage() {
             )}
 
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                <p className="text-sm text-red-400">
+              <div className="rounded-xl border border-error/30 bg-error/10 p-4">
+                <p className="text-sm text-error">
                   Failed to load releases: {error}
                 </p>
                 <a
@@ -98,7 +98,7 @@ export default function ReleasesPage() {
                         </span>
                       )}
                       {release.prerelease && (
-                        <span className="text-[10px] font-mono bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full px-2 py-0.5">
+                        <span className="text-[10px] font-mono bg-warn/10 text-warn border border-warn/20 rounded-full px-2 py-0.5">
                           pre-release
                         </span>
                       )}

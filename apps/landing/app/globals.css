@@ -14,6 +14,32 @@
   --ok: #a6e3a1;
   --error: #f38ba8;
   --warn: #f9e2af;
+  --syntax-kw:   #cba6f7;
+  --syntax-fn:   #89b4fa;
+  --syntax-tag:  #f38ba8;
+  --syntax-attr: #fab387;
+  --syntax-str:  #a6e3a1;
+}
+
+[data-theme="light"] {
+  --bg: #f4f5fa;
+  --surface: #ffffff;
+  --surface2: #eef0f7;
+  --border: #dde1ef;
+  --border2: #c8cedf;
+  --accent: #0284c7;
+  --accent2: #0369a1;
+  --text: #1a1d2e;
+  --text-dim: #4a5280;
+  --text-muted: #9ca3af;
+  --ok: #16a34a;
+  --error: #dc2626;
+  --warn: #d97706;
+  --syntax-kw:   #7c3aed;
+  --syntax-fn:   #1d4ed8;
+  --syntax-tag:  #b91c1c;
+  --syntax-attr: #c2410c;
+  --syntax-str:  #15803d;
 }
 
 @theme inline {
@@ -28,6 +54,13 @@
   --color-text-dim: var(--text-dim);
   --color-text-muted: var(--text-muted);
   --color-ok: var(--ok);
+  --color-error: var(--error);
+  --color-warn: var(--warn);
+  --color-syntax-kw: var(--syntax-kw);
+  --color-syntax-fn: var(--syntax-fn);
+  --color-syntax-tag: var(--syntax-tag);
+  --color-syntax-attr: var(--syntax-attr);
+  --color-syntax-str: var(--syntax-str);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

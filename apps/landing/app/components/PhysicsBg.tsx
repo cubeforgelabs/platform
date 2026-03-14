@@ -38,7 +38,7 @@ const SHAPES: SpriteShape[] = [
   "hexagon",
 ];
 
-const PAGE_BG = "#0b0d14";
+const DARK_BG = "#0b0d14";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function makeDrift(idx: number) {
@@ -102,9 +102,24 @@ function FloatingShape({
 
 export function PhysicsBg() {
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+  const [pageBg, setPageBg] = useState(DARK_BG);
 
   useEffect(() => {
     setDims({ w: window.innerWidth, h: window.innerHeight });
+
+    const readBg = () => {
+      const v = getComputedStyle(document.documentElement)
+        .getPropertyValue("--bg")
+        .trim();
+      setPageBg(v || DARK_BG);
+    };
+    readBg();
+
+    const observer = new MutationObserver((muts) => {
+      if (muts.some((m) => m.attributeName === "data-theme")) readBg();
+    });
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
   }, []);
 
   if (!dims) return null;
@@ -112,7 +127,7 @@ export function PhysicsBg() {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       <Game width={dims.w} height={dims.h} gravity={0}>
-        <World background={PAGE_BG}>
+        <World background={pageBg}>
           <Camera2D />
           {Array.from({ length: 30 }, (_, i) => (
             <FloatingShape

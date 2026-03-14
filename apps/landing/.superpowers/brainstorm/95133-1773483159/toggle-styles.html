@@ -1,0 +1,110 @@
+<h2>How should the theme toggle look in the navbar?</h2>
+<p class="subtitle">The toggle sits in the top-right of the navbar, before the "Open Editor" button</p>
+
+<div class="cards" style="grid-template-columns: 1fr 1fr; gap: 24px;">
+
+  <!-- Option A: Icon button only -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 28px; display:flex; justify-content:center; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px; background:#12151f; padding:10px 16px; border-radius:10px; border:1px solid #1f2435;">
+        <span style="color:#cdd6f4; font-size:13px; font-family:monospace;">cubeforge</span>
+        <div style="width:1px; height:16px; background:#1f2435; margin:0 4px;"></div>
+        <span style="color:#6b7a9e; font-size:12px;">Play · Docs</span>
+        <div style="flex:1"></div>
+        <button style="background:none; border:1px solid #1f2435; border-radius:8px; padding:6px; cursor:pointer; color:#4fc3f7; display:flex; align-items:center;">
+          <!-- Sun SVG -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <button style="background:#4fc3f7; color:#0b0d14; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600;">Editor</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Icon button</h3>
+      <p>Sun/moon icon in a small bordered button. Clean, minimal, standard across modern sites.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Sun/Moon pill toggle -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 28px; display:flex; justify-content:center; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px; background:#12151f; padding:10px 16px; border-radius:10px; border:1px solid #1f2435;">
+        <span style="color:#cdd6f4; font-size:13px; font-family:monospace;">cubeforge</span>
+        <div style="width:1px; height:16px; background:#1f2435; margin:0 4px;"></div>
+        <span style="color:#6b7a9e; font-size:12px;">Play · Docs</span>
+        <div style="flex:1"></div>
+        <!-- Pill toggle -->
+        <div style="display:flex; background:#0b0d14; border:1px solid #1f2435; border-radius:20px; padding:3px; gap:2px;">
+          <button style="background:#4fc3f7; border:none; border-radius:16px; padding:4px 10px; display:flex; align-items:center; gap:4px; cursor:pointer; color:#0b0d14; font-size:11px; font-weight:600;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            Light
+          </button>
+          <button style="background:none; border:none; border-radius:16px; padding:4px 10px; display:flex; align-items:center; gap:4px; cursor:pointer; color:#6b7a9e; font-size:11px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            Dark
+          </button>
+        </div>
+        <button style="background:#4fc3f7; color:#0b0d14; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600;">Editor</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Light / Dark pill</h3>
+      <p>Two-segment pill showing current mode with label. More explicit, takes slightly more space.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Slider toggle switch -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 28px; display:flex; justify-content:center; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px; background:#12151f; padding:10px 16px; border-radius:10px; border:1px solid #1f2435;">
+        <span style="color:#cdd6f4; font-size:13px; font-family:monospace;">cubeforge</span>
+        <div style="width:1px; height:16px; background:#1f2435; margin:0 4px;"></div>
+        <span style="color:#6b7a9e; font-size:12px;">Play · Docs</span>
+        <div style="flex:1"></div>
+        <!-- Icons + switch -->
+        <div style="display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <div style="width:36px; height:20px; background:#1f2435; border-radius:10px; position:relative; cursor:pointer; border:1px solid #2a3048;">
+            <div style="width:14px; height:14px; background:#4fc3f7; border-radius:50%; position:absolute; top:2px; left:3px; transition:left 0.2s;"></div>
+          </div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7a9e" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+        <button style="background:#4fc3f7; color:#0b0d14; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600;">Editor</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Slider with icons</h3>
+      <p>Classic toggle switch flanked by sun and moon icons. Familiar UX pattern, compact.</p>
+    </div>
+  </div>
+
+  <!-- Option D: Icon only, no border -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 28px; display:flex; justify-content:center; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px; background:#12151f; padding:10px 16px; border-radius:10px; border:1px solid #1f2435;">
+        <span style="color:#cdd6f4; font-size:13px; font-family:monospace;">cubeforge</span>
+        <div style="width:1px; height:16px; background:#1f2435; margin:0 4px;"></div>
+        <span style="color:#6b7a9e; font-size:12px;">Play · Docs</span>
+        <div style="flex:1"></div>
+        <button style="background:none; border:none; padding:6px; cursor:pointer; color:#6b7a9e; display:flex; align-items:center;" title="Toggle theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <button style="background:#4fc3f7; color:#0b0d14; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600;">Editor</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D — Ghost icon (no border)</h3>
+      <p>Borderless icon button. Most minimal — blends into the nav. Subtle but discoverable.</p>
+    </div>
+  </div>
+
+</div>
