@@ -31,6 +31,7 @@ export function GamePage() {
   const [submitting, setSubmitting] = useState(false)
   const [moreByAuthor, setMoreByAuthor] = useState<GameListItem[]>([])
   const [similarGames, setSimilarGames] = useState<GameListItem[]>([])
+  const [embedCopied, setEmbedCopied] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -399,6 +400,17 @@ export function GamePage() {
                 <line x1="12" y1="2" x2="12" y2="15" />
               </svg>
               Share
+            </button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`<iframe src="https://play.cubeforge.dev/game/${game.id}/embed" width="800" height="500" frameborder="0" allowfullscreen></iframe>`)
+                setEmbedCopied(true)
+                setTimeout(() => setEmbedCopied(false), 2000)
+              }}
+              className="w-full rounded-lg border border-border bg-surface2 px-4 py-2 text-xs font-medium text-text-dim hover:text-text hover:border-border2 transition-all flex items-center justify-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              {embedCopied ? 'Copied!' : 'Embed'}
             </button>
           </div>
         </div>

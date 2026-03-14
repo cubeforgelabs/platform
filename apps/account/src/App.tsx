@@ -11,6 +11,8 @@ import { HistoryPage } from './pages/HistoryPage'
 import { SessionsPage } from './pages/SessionsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { FollowsPage } from './pages/FollowsPage'
+import { NotificationsPage } from './pages/NotificationsPage'
+import { AnalyticsPage } from './pages/AnalyticsPage'
 import { Layout } from './components/Layout'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -47,6 +49,8 @@ export function App() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="follows" element={<FollowsPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="sessions" element={<SessionsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

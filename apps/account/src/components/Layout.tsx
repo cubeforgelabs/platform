@@ -1,7 +1,10 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/auth-context'
+import { supabase } from '../lib/supabase'
 import { UserMenu } from '@cubeforgelabs/ui'
 import { ThemeToggle } from './ThemeToggle'
+import { Bell } from 'lucide-react'
 
 const NAV = [
   { to: '/', label: 'Profile', end: true },
@@ -9,13 +12,29 @@ const NAV = [
   { to: '/history', label: 'History' },
   { to: '/reviews', label: 'Reviews' },
   { to: '/follows', label: 'Following' },
+  { to: '/notifications', label: 'Notifications' },
+  { to: '/analytics', label: 'Analytics' },
   { to: '/sessions', label: 'Sessions' },
   { to: '/settings', label: 'Settings' },
 ]
 
 export function Layout() {
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, user } = useAuth()
   const navigate = useNavigate()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    async function fetchUnread() {
+      const { count } = await (supabase as any)
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('read', false)
+      setUnreadCount(count ?? 0)
+    }
+    fetchUnread()
+  }, [user])
 
   async function handleSignOut() {
     await signOut()
@@ -61,7 +80,7 @@ export function Layout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `px-3 py-2 rounded-lg text-sm transition-colors ${
+                `px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 ${
                   isActive
                     ? 'text-text font-medium'
                     : 'text-text-muted hover:text-text-dim'
@@ -71,7 +90,20 @@ export function Layout() {
                 background: 'var(--surface2)',
               } : {}}
             >
-              {label}
+              {label === 'Notifications' ? (
+                <>
+                  <Bell size={13} className="shrink-0" />
+                  <span>{label}</span>
+                  {unreadCount > 0 && (
+                    <span
+                      className="ml-auto text-[9px] font-bold rounded-full px-1.5 py-0.5"
+                      style={{ background: 'var(--error)', color: '#fff' }}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </>
+              ) : label}
             </NavLink>
           ))}
         </nav>
