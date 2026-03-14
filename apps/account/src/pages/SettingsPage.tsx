@@ -204,36 +204,38 @@ export function SettingsPage() {
         )}
       </section>
 
-      {/* Email address */}
-      <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
-        <h2 className="text-sm font-semibold text-text">Email address</h2>
-        <p className="text-xs text-text-muted -mt-2">Current: <span className="text-text-dim">{user?.email}</span></p>
-        {emailSent ? (
-          <p className="text-xs" style={{ color: 'var(--ok)' }}>
-            Confirmation sent to <strong>{newEmail || 'your new email'}</strong>. Click the link there to complete the change.
-          </p>
-        ) : (
-          <form onSubmit={handleEmailChange} className="flex flex-col gap-3">
-            <input
-              type="email"
-              placeholder="New email address"
-              value={newEmail}
-              onChange={e => setNewEmail(e.target.value)}
-              required
-              className="inner-input"
-            />
-            {emailError && <p className="text-xs" style={{ color: 'var(--error)' }}>{emailError}</p>}
-            <button
-              type="submit"
-              disabled={emailSaving}
-              className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
-              style={{ background: 'var(--accent)' }}
-            >
-              {emailSaving ? 'Sending…' : 'Change email'}
-            </button>
-          </form>
-        )}
-      </section>
+      {/* Email address — hidden for OAuth users */}
+      {!oauthProvider ? (
+        <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
+          <h2 className="text-sm font-semibold text-text">Email address</h2>
+          <p className="text-xs text-text-muted -mt-2">Current: <span className="text-text-dim">{user?.email}</span></p>
+          {emailSent ? (
+            <p className="text-xs" style={{ color: 'var(--ok)' }}>
+              Confirmation sent to <strong>{newEmail || 'your new email'}</strong>. Click the link there to complete the change.
+            </p>
+          ) : (
+            <form onSubmit={handleEmailChange} className="flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="New email address"
+                value={newEmail}
+                onChange={e => setNewEmail(e.target.value)}
+                required
+                className="inner-input"
+              />
+              {emailError && <p className="text-xs" style={{ color: 'var(--error)' }}>{emailError}</p>}
+              <button
+                type="submit"
+                disabled={emailSaving}
+                className="self-start rounded-xl px-5 py-2 text-sm font-semibold text-bg transition-colors disabled:opacity-50"
+                style={{ background: 'var(--accent)' }}
+              >
+                {emailSaving ? 'Sending…' : 'Change email'}
+              </button>
+            </form>
+          )}
+        </section>
+      ) : null}
 
       {/* Privacy */}
       <section className="rounded-2xl flex flex-col gap-4 p-5" style={sectionStyle}>
